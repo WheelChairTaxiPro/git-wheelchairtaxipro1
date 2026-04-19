@@ -1,0 +1,87 @@
+# ─── OS ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# ─── Editors / IDEs ────────────────────────────────────────────────────
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# ─── Environment / secrets ─────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+secrets/
+
+# ─── Local-only files (personal notes, machine-specific configs) ───────
+# Use the *.local.* suffix for any file you want on this machine only
+# e.g. setup-notes.local.md, scratchpad.local.txt, dev-urls.local.json
+*.local.*
+.local/
+
+# ─── Node / Angular (frontend/) ────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist/
+dist-ssr/
+.angular/
+.nx/
+coverage/
+tmp/
+out-tsc/
+bazel-out/
+speed-measure-plugin.json
+
+# Playwright
+/frontend/playwright-report/
+/frontend/test-results/
+/frontend/blob-report/
+/frontend/playwright/.cache/
+
+# ─── .NET (backend/) ───────────────────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+[Dd]ebug/
+[Rr]elease/
+[Bb]uild/
+artifacts/
+*.pdb
+TestResults/
+*.trx
+*.coverage
+*.nupkg
+
+# ASP.NET
+/backend/**/appsettings.Local.json
+/backend/**/appsettings.Development.local.json
+
+# ─── Logs / misc ───────────────────────────────────────────────────────
+*.log
+logs/
+.DS_Store
+
+# ─── Cloudflare / deploy artifacts ─────────────────────────────────────
+.wrangler/
+.cloudflare/
+
+# ─── OS-specific ───────────────────────────────────────────────────────
+$RECYCLE.BIN/
