@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+.contact-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+
+  /* iOS home-indicator safe-area. No-op on Android / desktop. */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+
+  background: var(--mat-sys-outline-variant, #dcdcdc);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.contact-strip__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+
+  min-height: 64px;
+  padding: 0.5rem;
+
+  border: 0;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* Material Icon sizing inside the button. */
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.contact-strip__btn--phone {
+  background: #1a73e8;
+}
+
+.contact-strip__btn--whatsapp {
+  background: #1aa851;
+}
+
+.contact-strip__btn--wechat {
+  background: #059a4b;
+}
+
+.contact-strip__btn:hover,
+.contact-strip__btn:focus-visible {
+  filter: brightness(1.08);
+  outline: 3px solid #fff;
+  outline-offset: -3px;
+}
+
+.contact-strip__btn:active {
+  filter: brightness(0.92);
+}
+
+.contact-strip__label {
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 600px) {
+  .contact-strip__btn {
+    font-size: 1.05rem;
+    min-height: 72px;
+  }
+}

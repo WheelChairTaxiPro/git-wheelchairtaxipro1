@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>WeChat 微信</h2>
+
+<mat-dialog-content class="wechat-dialog__content">
+  <img
+    class="wechat-dialog__qr"
+    [src]="data.wechatQrUrl"
+    alt="WeChat QR code — scan in the WeChat app"
+    width="256"
+    height="256"
+  />
+
+  <p class="wechat-dialog__hint">
+    Scan the QR, or copy our WeChat ID:<br />
+    掃描 QR 碼，或複製微信 ID：
+  </p>
+
+  <code class="wechat-dialog__id">{{ data.wechatId }}</code>
+
+  <button mat-stroked-button type="button" (click)="copyId()">
+    <mat-icon aria-hidden="true" fontIcon="content_copy" />
+    {{ copied() ? 'Copied / 已複製' : 'Copy ID / 複製' }}
+  </button>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="ref.close()">Close 關閉</button>
+</mat-dialog-actions>
