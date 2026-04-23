@@ -1,0 +1,35 @@
+.wechat-dialog__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-width: 280px;
+  padding-top: 0.5rem;
+}
+
+.wechat-dialog__qr {
+  display: block;
+  width: 256px;
+  height: 256px;
+  border-radius: 12px;
+  background: #fafafa;
+  image-rendering: pixelated;
+}
+
+.wechat-dialog__hint {
+  margin: 0;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.wechat-dialog__id {
+  font-size: 1.25rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-variant, #f1f3f4);
+  user-select: all;
+  letter-spacing: 0.02em;
+}

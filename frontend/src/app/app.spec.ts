@@ -15,10 +15,11 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the app shell with router-outlet, bottom-nav, and contact-strip', () => {
+  it('should render the app shell with top-banner, router-outlet, bottom-nav, and contact-strip', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-top-banner')).toBeTruthy();
     expect(el.querySelector('router-outlet')).toBeTruthy();
     expect(el.querySelector('app-bottom-nav')).toBeTruthy();
     expect(el.querySelector('app-contact-strip')).toBeTruthy();
