@@ -37,3 +37,89 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+/* ==========================================================================
+   Shared feature-page layout primitives.
+   Every feature slice (map/booking/pricing/faq/about) uses `.page` as its
+   root element and the BEM children below for heading + placeholder body.
+   Real content in later slices replaces only the <p class="page__placeholder">
+   line; the heading pattern stays.
+   ========================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.page__title-zh {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.page__title-en {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  letter-spacing: 0.01em;
+}
+
+.page__subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.page__subtitle-zh {
+  font-size: 1rem;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.page__subtitle-en {
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+.page__placeholder {
+  padding: 1rem 1.25rem;
+  background: var(--mat-sys-surface-container, #f1f3f4);
+  border-left: 3px solid var(--mat-sys-primary, #1a73e8);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.page__placeholder-zh { font-size: 1rem; }
+.page__placeholder-en { font-size: 0.9rem; }
+
+@media (min-width: 600px) {
+  .page {
+    padding: 2rem 2rem;
+  }
+  .page__title-zh { font-size: 2rem; }
+  .page__title-en { font-size: 1.1rem; }
+}

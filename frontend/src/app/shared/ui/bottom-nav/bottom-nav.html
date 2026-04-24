@@ -1,1 +1,19 @@
-<p>bottom-nav works!</p>
+<nav class="bottom-nav" aria-label="Primary">
+  @for (tab of tabs; track tab.route) {
+    <a
+      #rla="routerLinkActive"
+      class="bottom-nav__tab"
+      routerLinkActive="bottom-nav__tab--active"
+      [routerLink]="tab.route"
+      [routerLinkActiveOptions]="tab.matchOptions"
+      [attr.aria-current]="rla.isActive ? 'page' : null"
+      [attr.aria-label]="tab.labelEn + ' ' + tab.labelZh"
+    >
+      <mat-icon aria-hidden="true" [fontIcon]="tab.icon" />
+      <span class="bottom-nav__label">
+        <span class="bottom-nav__label-zh">{{ tab.labelZh }}</span>
+        <span class="bottom-nav__label-en">{{ tab.labelEn }}</span>
+      </span>
+    </a>
+  }
+</nav>
