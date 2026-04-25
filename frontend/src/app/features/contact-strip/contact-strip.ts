@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { DEFAULT_CONTACT_CHANNELS } from '../../shared/config/contact.config';
 import type { ContactChannels } from '../../shared/models/contact-channels';
+import { DrawerService } from '../../shared/services/drawer.service';
 import { WechatDialog } from './wechat-dialog/wechat-dialog';
 
 /** Block accidental double-taps within this window (ms, per channel). */
@@ -29,8 +30,11 @@ export class ContactStrip {
   });
 
   private readonly dialog = inject(MatDialog);
+  private readonly drawer = inject(DrawerService);
 
   protected onTap(channel: Channel, event: Event): void {
+    this.drawer.close();
+
     const now = Date.now();
     const last = this.lastTap()[channel];
     if (now - last < THROTTLE_MS) {

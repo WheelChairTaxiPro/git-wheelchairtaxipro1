@@ -1,0 +1,29 @@
+<nav id="app-drawer" class="hamburger-menu" aria-label="Secondary">
+  <mat-nav-list class="hamburger-menu__list">
+    @for (link of links; track link.route) {
+      <a
+        mat-list-item
+        class="hamburger-menu__item"
+        [routerLink]="link.route"
+        [attr.aria-label]="link.labelEn + ' ' + link.labelZh"
+      >
+        <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="link.icon" />
+        <span matListItemTitle class="hamburger-menu__label">
+          <span class="hamburger-menu__label-zh">{{ link.labelZh }}</span>
+          <span class="hamburger-menu__label-en">{{ link.labelEn }}</span>
+        </span>
+      </a>
+    }
+
+    <mat-divider />
+
+    <div
+      class="hamburger-menu__item hamburger-menu__lang"
+      role="group"
+      aria-label="Language 語言"
+    >
+      <mat-icon aria-hidden="true" fontIcon="language" />
+      <app-language-switcher />
+    </div>
+  </mat-nav-list>
+</nav>

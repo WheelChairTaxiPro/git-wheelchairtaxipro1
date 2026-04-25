@@ -1,0 +1,48 @@
+:host {
+  display: block;
+  height: 100%;
+  background: var(--mat-sys-surface, #fff);
+}
+
+.hamburger-menu {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem 0;
+}
+
+.hamburger-menu__list {
+  padding: 0;
+}
+
+.hamburger-menu__item {
+  min-height: 56px;
+}
+
+.hamburger-menu__label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.hamburger-menu__label-zh {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.hamburger-menu__label-en {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  letter-spacing: 0.01em;
+}
+
+.hamburger-menu__lang {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+
+  mat-icon {
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+  }
+}
