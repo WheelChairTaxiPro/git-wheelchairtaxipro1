@@ -1,12 +1,16 @@
 :host {
   display: block;
-  min-height: 100dvh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
 }
 
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
 
   &__banner,
   &__nav,
@@ -17,7 +21,9 @@
   &__body {
     flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
     display: flex;
+    overflow: hidden;
     background: var(--mat-sys-surface, #fff);
   }
 
@@ -29,7 +35,17 @@
     box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
   }
 
+  &__main-wrap {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   &__main {
+    box-sizing: border-box;
+    min-height: 100%;
+    width: 100%;
     padding: 1rem;
   }
 }
