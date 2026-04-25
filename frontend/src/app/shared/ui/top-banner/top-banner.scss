@@ -3,8 +3,29 @@
 }
 
 .top-banner {
+  position: relative;
   background: #000;
   line-height: 0;
+}
+
+.top-banner__hamburger {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  z-index: 2;
+
+  color: var(--mat-sys-on-primary, #fff);
+  background-color: rgba(0, 0, 0, 0.35);
+
+  &:hover,
+  &:focus-visible {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary-container, #e8f0fe);
+    outline-offset: 2px;
+  }
 }
 
 .top-banner__link {

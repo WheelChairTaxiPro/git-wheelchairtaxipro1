@@ -1,4 +1,16 @@
 <header class="top-banner" role="banner">
+  <button
+    type="button"
+    mat-icon-button
+    class="top-banner__hamburger"
+    aria-label="Open navigation menu 開啟選單"
+    aria-controls="app-drawer"
+    [attr.aria-expanded]="drawerService.isOpen()"
+    (click)="drawerService.toggle()"
+  >
+    <mat-icon aria-hidden="true" fontIcon="menu" />
+  </button>
+
   <a class="top-banner__link" href="/" aria-label="Wheelchair Taxi Pro 專業輪椅的士 — home">
     <img
       class="top-banner__img"

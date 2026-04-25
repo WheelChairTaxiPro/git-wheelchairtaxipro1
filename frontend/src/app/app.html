@@ -1,9 +1,31 @@
 <div class="app-shell">
   <app-top-banner class="app-shell__banner" />
 
-  <main class="app-shell__main">
-    <router-outlet />
-  </main>
+  <mat-sidenav-container
+    class="app-shell__body"
+    [hasBackdrop]="false"
+  >
+    <mat-sidenav
+      #drawer
+      class="app-shell__drawer"
+      mode="over"
+      position="start"
+      [opened]="drawerService.isOpen()"
+      (openedChange)="onDrawerOpenedChange($event)"
+      (keydown.escape)="drawerService.close()"
+    >
+      <app-hamburger-menu />
+    </mat-sidenav>
+
+    <mat-sidenav-content
+      class="app-shell__main-wrap"
+      (click)="onMainWrapClick()"
+    >
+      <main class="app-shell__main">
+        <router-outlet />
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 
   <app-bottom-nav class="app-shell__nav" />
   <app-contact-strip class="app-shell__contact" />

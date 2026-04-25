@@ -8,14 +8,32 @@
   flex-direction: column;
   min-height: 100dvh;
 
-  &__main {
-    flex: 1 1 auto;
-    overflow-y: auto;
-  }
-
   &__banner,
   &__nav,
   &__contact {
     flex: 0 0 auto;
   }
+
+  &__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    background: var(--mat-sys-surface, #fff);
+  }
+
+  &__drawer {
+    width: 280px;
+    max-width: 85vw;
+
+    border-right: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
+  }
+
+  &__main {
+    padding: 1rem;
+  }
+}
+
+.mat-drawer-backdrop {
+  display: none !important;
 }
