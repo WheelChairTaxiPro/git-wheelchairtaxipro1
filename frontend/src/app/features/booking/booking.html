@@ -10,8 +10,93 @@
     </p>
   </header>
 
-  <p class="page__placeholder">
-    <span class="page__placeholder-zh">預約表單即將推出。</span>
-    <span class="page__placeholder-en">Booking form coming soon.</span>
-  </p>
+  <form class="booking-form" aria-label="輪椅的士預約表格" (submit)="onSubmit($event)">
+    <h2 class="booking-form__title">📋 請提供以下資料</h2>
+
+    <fieldset class="booking-form__section">
+      <legend>🕒 行程資料</legend>
+
+      <label class="booking-form__field">
+        <span>📅 日期及時間</span>
+        <input name="pickupDateTime" type="datetime-local" required />
+      </label>
+
+      <label class="booking-form__field">
+        <span>📍 出發地</span>
+        <input
+          name="pickupLocation"
+          type="text"
+          autocomplete="street-address"
+          placeholder="例如：屯門醫院"
+          required
+        />
+      </label>
+
+      <label class="booking-form__field">
+        <span>🎯 目的地</span>
+        <input
+          name="destination"
+          type="text"
+          autocomplete="street-address"
+          placeholder="例如：香港眼科醫院"
+          required
+        />
+      </label>
+    </fieldset>
+
+    <fieldset class="booking-form__section">
+      <legend>👥 乘客資料</legend>
+
+      <label class="booking-form__field">
+        <span>👨‍👩‍👧 乘客總人數（包括輪椅乘客）</span>
+        <input name="passengerCount" type="number" inputmode="numeric" min="1" step="1" required />
+      </label>
+
+      <label class="booking-form__field">
+        <span>♿ 是否有輪椅（數量）</span>
+        <input name="wheelchairCount" type="number" inputmode="numeric" min="0" step="1" required />
+      </label>
+    </fieldset>
+
+    <fieldset class="booking-form__section">
+      <legend>📞 聯絡資料</legend>
+
+      <label class="booking-form__field">
+        <span>📱 聯絡電話號碼</span>
+        <input name="phone" type="tel" autocomplete="tel" placeholder="例如：9123 4567" required />
+      </label>
+
+      <label class="booking-form__field">
+        <span>📧 電郵地址</span>
+        <input name="email" type="email" autocomplete="email" placeholder="例如：name@example.com" required />
+      </label>
+
+      <label class="booking-form__field">
+        <span>🙋‍♂️ 稱謂（例如：陳先生 / 李小姐）</span>
+        <input name="contactName" type="text" autocomplete="name" required />
+      </label>
+    </fieldset>
+
+    <fieldset class="booking-form__section">
+      <legend>🚕 車型（可選）</legend>
+
+      <label class="booking-form__field">
+        <span>🚗 指定車型（可選）</span>
+        <select name="vehicleType">
+          <option value="">請選擇車型</option>
+          @for (vehicle of vehicleOptions; track vehicle.value) {
+            <option [value]="vehicle.value">{{ vehicle.label }}</option>
+          }
+        </select>
+      </label>
+    </fieldset>
+
+    <button class="booking-form__submit" type="submit">提交預約 Submit Booking</button>
+
+    @if (submitted()) {
+      <p class="booking-form__status" role="status">
+        已收到您的預約資料（原型示範）。正式後會發送到後端並由專人確認。
+      </p>
+    }
+  </form>
 </section>
