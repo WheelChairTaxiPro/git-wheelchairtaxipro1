@@ -18,6 +18,7 @@ Rider-facing website and booking API designed to compete with established wheelc
 - [Phase 1 (MVP) Scope](#phase-1-mvp-scope)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
+- [Repository Hygiene](#repository-hygiene)
 - [Design Documents](#design-documents)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -282,6 +283,14 @@ cd frontend
 npx playwright install --with-deps    # first time only
 npx playwright test
 ```
+
+---
+
+## Repository Hygiene
+
+Keep repo-wide ignore rules in the root `.gitignore`. This is the central place for build outputs, dependency folders, local-only notes, generated config, and secret-bearing files.
+
+Use narrow ignore rules for generated files. For example, ignore `frontend/src/app/core/config/google-maps.generated.ts` because it is created from `GOOGLE_MAPS_API_KEY` during frontend build/start and may contain a real API key. Do not ignore the whole `frontend/src/app/core/` folder, because it is a normal Angular source folder and may later contain committed app code.
 
 ---
 

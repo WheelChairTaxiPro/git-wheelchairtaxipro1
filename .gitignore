@@ -31,6 +31,9 @@ secrets/
 *.local.*
 .local/
 
+# ─── Generated config containing local secrets ─────────────────────────
+frontend/src/app/core/config/google-maps.generated.ts
+
 # ─── Node / Angular (frontend/) ────────────────────────────────────────
 node_modules/
 npm-debug.log*
