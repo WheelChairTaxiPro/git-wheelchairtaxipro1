@@ -100,24 +100,43 @@
   border-radius: 14px;
   background: var(--mat-sys-surface, #fff);
   box-shadow: 0 6px 18px rgba(60, 64, 67, 0.24);
+}
 
-  button {
-    padding: 0.75rem 1rem;
-    border: 0;
-    border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
-    background: transparent;
-    color: var(--mat-sys-on-surface, #202124);
-    font: inherit;
-    line-height: 1.35;
-    text-align: left;
-    cursor: pointer;
+.map-page__recent-row {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+}
 
-    &:hover,
-    &:focus-visible {
-      background: var(--mat-sys-surface-container, #f1f3f4);
-      outline: none;
-    }
+.map-page__recent-address,
+.map-page__recent-remove {
+  border: 0;
+  background: transparent;
+  color: var(--mat-sys-on-surface, #202124);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container, #f1f3f4);
+    outline: none;
   }
+}
+
+.map-page__recent-address {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.map-page__recent-remove {
+  flex: 0 0 auto;
+  width: 44px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .map-page__recent-title {

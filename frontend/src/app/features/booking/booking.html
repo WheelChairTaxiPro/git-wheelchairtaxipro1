@@ -44,75 +44,89 @@
     <fieldset class="booking-form__section">
       <legend>🕒 行程資料</legend>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>📅 日期及時間</span>
         <input name="pickupDateTime" type="datetime-local" required />
       </label>
 
-      <label class="booking-form__field">
-        <span>📍 出發地</span>
-        <span class="booking-form__clearable-control">
-          <input
-            name="pickupLocation"
-            type="text"
-            autocomplete="off"
-            placeholder="例如：屯門醫院"
-            [value]="trip.pickup()?.address ?? ''"
-            (focus)="showRecentPickupPlaces()"
-            (input)="onPickupLocationInput($event)"
-            required
-          />
-          <button type="button" aria-label="Clear pickup location" (click)="clearPickupLocation()">×</button>
+      <div class="booking-route__search">
+        <label #pickupLocationField class="booking-route__search-field">
+          <span class="booking-route__search-label">上車地點 Pickup</span>
+          <span class="booking-route__search-control">
+            <input
+              #pickupAddrInput
+              name="pickupLocation"
+              type="text"
+              autocomplete="off"
+              placeholder="搜尋上車地點 Search pickup"
+              aria-label="Search pickup location 上車地點"
+              (focus)="showRecentPickupPlaces()"
+              (input)="onPickupLocationInput($event)"
+              required
+            />
+            <button type="button" aria-label="Clear pickup location" (click)="clearPickupLocation()">×</button>
         </span>
         @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="Recent pickup addresses 最近上車地點">
             <p class="booking-form__recent-title">最近使用 Recent addresses</p>
             @for (place of recentPickupPlaces(); track place.address) {
-              <button type="button" role="option" (click)="selectRecentPickup(place)">
-                {{ place.address }}
-              </button>
+              <div class="booking-form__recent-row" role="option">
+                <button type="button" class="booking-form__recent-address" (click)="selectRecentPickup(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="booking-form__recent-remove" aria-label="Remove recent pickup address" (click)="removeRecentPickup(place)">
+                  ×
+                </button>
+              </div>
             }
           </div>
         }
-      </label>
+        </label>
 
-      <label class="booking-form__field">
-        <span>🎯 目的地</span>
-        <span class="booking-form__clearable-control">
-          <input
-            name="destination"
-            type="text"
-            autocomplete="off"
-            placeholder="例如：香港眼科醫院"
-            [value]="trip.dropoff()?.address ?? ''"
-            (focus)="showRecentDropoffPlaces()"
-            (input)="onDestinationInput($event)"
-            required
-          />
-          <button type="button" aria-label="Clear destination" (click)="clearDestination()">×</button>
+        <label #destinationField class="booking-route__search-field">
+          <span class="booking-route__search-label">目的地 Destination</span>
+          <span class="booking-route__search-control">
+            <input
+              #dropoffAddrInput
+              name="destination"
+              type="text"
+              autocomplete="off"
+              placeholder="搜尋目的地 Search destination"
+              aria-label="Search destination 目的地"
+              (focus)="showRecentDropoffPlaces()"
+              (input)="onDestinationInput($event)"
+              required
+            />
+            <button type="button" aria-label="Clear destination" (click)="clearDestination()">×</button>
         </span>
         @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="Recent destination addresses 最近目的地">
             <p class="booking-form__recent-title">最近使用 Recent addresses</p>
             @for (place of recentDropoffPlaces(); track place.address) {
-              <button type="button" role="option" (click)="selectRecentDropoff(place)">
-                {{ place.address }}
-              </button>
+              <div class="booking-form__recent-row" role="option">
+                <button type="button" class="booking-form__recent-address" (click)="selectRecentDropoff(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="booking-form__recent-remove" aria-label="Remove recent destination address" (click)="removeRecentDropoff(place)">
+                  ×
+                </button>
+              </div>
             }
           </div>
         }
-      </label>
+        </label>
+      </div>
     </fieldset>
 
     <fieldset class="booking-form__section">
       <legend>👥 乘客資料</legend>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>👨‍👩‍👧 乘客總人數（包括輪椅乘客）</span>
         <input name="passengerCount" type="number" inputmode="numeric" min="1" step="1" required />
       </label>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>♿ 是否有輪椅（數量）</span>
         <input name="wheelchairCount" type="number" inputmode="numeric" min="0" step="1" required />
       </label>
@@ -121,17 +135,17 @@
     <fieldset class="booking-form__section">
       <legend>📞 聯絡資料</legend>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>📱 聯絡電話號碼</span>
         <input name="phone" type="tel" autocomplete="tel" placeholder="例如：9123 4567" required />
       </label>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>📧 電郵地址</span>
         <input name="email" type="email" autocomplete="email" placeholder="例如：name@example.com" required />
       </label>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>🙋‍♂️ 稱謂（例如：陳先生 / 李小姐）</span>
         <input name="contactName" type="text" autocomplete="name" required />
       </label>
@@ -140,7 +154,7 @@
     <fieldset class="booking-form__section">
       <legend>🚕 車型（可選）</legend>
 
-      <label class="booking-form__field">
+      <label class="booking-form__field booking-form__field--standard">
         <span>🚗 指定車型（可選）</span>
         <select name="vehicleType">
           <option value="">請選擇車型</option>

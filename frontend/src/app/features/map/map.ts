@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import type { LatLng, Place } from '../../shared/models/trip.models';
@@ -20,6 +20,8 @@ const MAX_RECENT_PLACES = 5;
 })
 export class Map implements AfterViewInit, OnDestroy {
   @ViewChild('mapCanvas') private mapCanvas?: ElementRef<HTMLDivElement>;
+  @ViewChild('pickupSearchField') private pickupSearchField?: ElementRef<HTMLElement>;
+  @ViewChild('dropoffSearchField') private dropoffSearchField?: ElementRef<HTMLElement>;
   @ViewChild('pickupInput') private pickupInput?: ElementRef<HTMLInputElement>;
   @ViewChild('dropoffInput') private dropoffInput?: ElementRef<HTMLInputElement>;
 
@@ -117,6 +119,28 @@ export class Map implements AfterViewInit, OnDestroy {
     this.dropoffMarker?.setMap(null);
     this.userLocationMarker?.setMap(null);
     this.directionsRenderer?.setMap(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    const activeList = this.activeRecentList();
+    if (!activeList) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Node)) {
+      this.activeRecentList.set(null);
+      return;
+    }
+
+    const activeField = activeList === 'pickup'
+      ? this.pickupSearchField?.nativeElement
+      : this.dropoffSearchField?.nativeElement;
+
+    if (!activeField?.contains(target)) {
+      this.activeRecentList.set(null);
+    }
   }
 
   protected showMyLocation(): void {
@@ -254,6 +278,20 @@ export class Map implements AfterViewInit, OnDestroy {
     this.rememberRecentPlace('dropoff', place);
     if (this.pickup()) {
       await this.calculateAndRenderRoute();
+    }
+  }
+
+  protected removeRecentPickup(place: Place): void {
+    this.removeRecentPlace('pickup', place);
+    if (this.pickup()?.address === place.address) {
+      this.clearPickup();
+    }
+  }
+
+  protected removeRecentDropoff(place: Place): void {
+    this.removeRecentPlace('dropoff', place);
+    if (this.dropoff()?.address === place.address) {
+      this.clearDropoff();
     }
   }
 
@@ -533,6 +571,26 @@ export class Map implements AfterViewInit, OnDestroy {
       this.recentPickupPlaces.set(nextPlaces);
     } else {
       this.recentDropoffPlaces.set(nextPlaces);
+    }
+
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(nextPlaces));
+    } catch {
+      // localStorage can be unavailable in private browsing or locked-down browsers.
+    }
+  }
+
+  private removeRecentPlace(type: 'pickup' | 'dropoff', place: Place): void {
+    const storageKey = type === 'pickup' ? RECENT_PICKUP_STORAGE_KEY : RECENT_DROPOFF_STORAGE_KEY;
+    const existing = type === 'pickup' ? this.recentPickupPlaces() : this.recentDropoffPlaces();
+    const nextPlaces = existing.filter((item) => item.address !== place.address);
+
+    if (type === 'pickup') {
+      this.recentPickupPlaces.set(nextPlaces);
+      this.activeRecentList.set(nextPlaces.length > 0 ? 'pickup' : null);
+    } else {
+      this.recentDropoffPlaces.set(nextPlaces);
+      this.activeRecentList.set(nextPlaces.length > 0 ? 'dropoff' : null);
     }
 
     try {
