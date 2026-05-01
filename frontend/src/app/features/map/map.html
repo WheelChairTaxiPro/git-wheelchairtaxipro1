@@ -12,7 +12,7 @@
 
   <div class="map-page">
     <section class="map-page__search" aria-label="Search route locations">
-      <label class="map-page__search-field">
+      <label #pickupSearchField class="map-page__search-field">
         <span class="map-page__search-label">上車地點 Pickup</span>
         <span class="map-page__search-control">
           <input
@@ -30,15 +30,20 @@
           <div class="map-page__recent" role="listbox" aria-label="Recent pickup addresses 最近上車地點">
             <p class="map-page__recent-title">最近使用 Recent addresses</p>
             @for (place of recentPickupPlaces(); track place.address) {
-              <button type="button" role="option" (click)="selectRecentPickup(place)">
-                {{ place.address }}
-              </button>
+              <div class="map-page__recent-row" role="option">
+                <button type="button" class="map-page__recent-address" (click)="selectRecentPickup(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="map-page__recent-remove" aria-label="Remove recent pickup address" (click)="removeRecentPickup(place)">
+                  ×
+                </button>
+              </div>
             }
           </div>
         }
       </label>
 
-      <label class="map-page__search-field">
+      <label #dropoffSearchField class="map-page__search-field">
         <span class="map-page__search-label">目的地 Destination</span>
         <span class="map-page__search-control">
           <input
@@ -56,9 +61,14 @@
           <div class="map-page__recent" role="listbox" aria-label="Recent destination addresses 最近目的地">
             <p class="map-page__recent-title">最近使用 Recent addresses</p>
             @for (place of recentDropoffPlaces(); track place.address) {
-              <button type="button" role="option" (click)="selectRecentDropoff(place)">
-                {{ place.address }}
-              </button>
+              <div class="map-page__recent-row" role="option">
+                <button type="button" class="map-page__recent-address" (click)="selectRecentDropoff(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="map-page__recent-remove" aria-label="Remove recent destination address" (click)="removeRecentDropoff(place)">
+                  ×
+                </button>
+              </div>
             }
           </div>
         }
