@@ -19,6 +19,7 @@ desktop.ini
 .env
 .env.local
 .env.*.local
+frontend/src/app/core/config/google-maps.generated.ts
 *.pem
 *.key
 *.p12

@@ -5,13 +5,132 @@
       <span class="page__title-en">Route</span>
     </h1>
     <p class="page__subtitle">
-      <span class="page__subtitle-zh">查看司機位置與建議路線。</span>
-      <span class="page__subtitle-en">View driver location and suggested routes.</span>
+      <span class="page__subtitle-zh">選擇上車地點及目的地，查看建議路線。</span>
+      <span class="page__subtitle-en">Choose pickup and destination to preview the route.</span>
     </p>
   </header>
 
-  <p class="page__placeholder">
-    <span class="page__placeholder-zh">地圖即將推出。</span>
-    <span class="page__placeholder-en">Map coming soon.</span>
-  </p>
+  <div class="map-page">
+    <section class="map-page__search" aria-label="Search route locations">
+      <label class="map-page__search-field">
+        <span class="map-page__search-label">上車地點 Pickup</span>
+        <span class="map-page__search-control">
+          <input
+            #pickupInput
+            type="text"
+            autocomplete="off"
+            placeholder="搜尋上車地點 Search pickup"
+            aria-label="Search pickup location 上車地點"
+            (focus)="showRecentPickupPlaces()"
+            (input)="onPickupSearchInput($event)"
+          />
+          <button type="button" aria-label="Clear pickup location" (click)="clearPickup()">×</button>
+        </span>
+        @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
+          <div class="map-page__recent" role="listbox" aria-label="Recent pickup addresses 最近上車地點">
+            <p class="map-page__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentPickupPlaces(); track place.address) {
+              <button type="button" role="option" (click)="selectRecentPickup(place)">
+                {{ place.address }}
+              </button>
+            }
+          </div>
+        }
+      </label>
+
+      <label class="map-page__search-field">
+        <span class="map-page__search-label">目的地 Destination</span>
+        <span class="map-page__search-control">
+          <input
+            #dropoffInput
+            type="text"
+            autocomplete="off"
+            placeholder="搜尋目的地 Search destination"
+            aria-label="Search destination 目的地"
+            (focus)="showRecentDropoffPlaces()"
+            (input)="onDropoffSearchInput($event)"
+          />
+          <button type="button" aria-label="Clear destination" (click)="clearDropoff()">×</button>
+        </span>
+        @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
+          <div class="map-page__recent" role="listbox" aria-label="Recent destination addresses 最近目的地">
+            <p class="map-page__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentDropoffPlaces(); track place.address) {
+              <button type="button" role="option" (click)="selectRecentDropoff(place)">
+                {{ place.address }}
+              </button>
+            }
+          </div>
+        }
+      </label>
+    </section>
+
+    <section class="map-page__panel" aria-live="polite">
+      @if (error(); as e) {
+        <p class="map-page__error">
+          <span>{{ e.messageZh }}</span>
+          <span>{{ e.messageEn }}</span>
+        </p>
+      }
+
+      <p class="map-page__prompt">
+        <span>{{ prompt().zh }}</span>
+        <span>{{ prompt().en }}</span>
+      </p>
+
+      @if (isLoading()) {
+        <p class="map-page__loading">載入中 Loading...</p>
+      }
+
+      <dl class="map-page__summary">
+        @if (pickup(); as p) {
+          <div>
+            <dt>上車 / Pickup</dt>
+            <dd>{{ p.address }}</dd>
+          </div>
+        }
+
+        @if (dropoff(); as d) {
+          <div>
+            <dt>目的地 / Destination</dt>
+            <dd>{{ d.address }}</dd>
+          </div>
+        }
+
+        @if (routeSummary(); as r) {
+          <div>
+            <dt>距離 / Distance</dt>
+            <dd>{{ r.distanceKm }} km</dd>
+          </div>
+          <div>
+            <dt>時間 / Time</dt>
+            <dd>{{ r.durationText }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (routeSummary()) {
+        <p class="map-page__fare-note">
+          最終收費按的士咪錶另加車型服務費計算。Final fare is based on the taxi meter plus the selected vehicle service or booking fee.
+        </p>
+      }
+    </section>
+
+    <div #mapCanvas class="map-page__canvas" aria-label="Google route map"></div>
+
+    <div class="map-page__actions">
+      <button type="button" class="map-page__secondary" (click)="showMyLocation()">
+        顯示我的位置 Show my location
+      </button>
+      <button type="button" class="map-page__secondary" (click)="showRoute()">
+        顯示路線 Show route
+      </button>
+      <button type="button" class="map-page__secondary" (click)="resetRoute()">
+        重新選擇 Reset
+      </button>
+      <button type="button" class="map-page__primary" [disabled]="!routeSummary()" (click)="continueToBooking()">
+        前往預約 Book now
+      </button>
+    </div>
+  </div>
 </section>

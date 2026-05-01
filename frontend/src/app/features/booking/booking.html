@@ -10,6 +10,34 @@
     </p>
   </header>
 
+  @if (trip.selection(); as selectedTrip) {
+    <section class="booking-trip-summary" aria-label="已選路線 Selected route">
+      <h2 class="booking-trip-summary__title">已選路線 Selected route</h2>
+      <dl class="booking-trip-summary__details">
+        <div>
+          <dt>上車 / Pickup</dt>
+          <dd>{{ selectedTrip.pickup.address }}</dd>
+        </div>
+        <div>
+          <dt>目的地 / Destination</dt>
+          <dd>{{ selectedTrip.dropoff.address }}</dd>
+        </div>
+        @if (selectedTrip.estimatedDistanceKm) {
+          <div>
+            <dt>距離 / Distance</dt>
+            <dd>{{ selectedTrip.estimatedDistanceKm }} km</dd>
+          </div>
+        }
+        @if (selectedTrip.estimatedDurationText) {
+          <div>
+            <dt>時間 / Time</dt>
+            <dd>{{ selectedTrip.estimatedDurationText }}</dd>
+          </div>
+        }
+      </dl>
+    </section>
+  }
+
   <form class="booking-form" aria-label="輪椅的士預約表格" (submit)="onSubmit($event)">
     <h2 class="booking-form__title">📋 請提供以下資料</h2>
 
@@ -23,24 +51,56 @@
 
       <label class="booking-form__field">
         <span>📍 出發地</span>
-        <input
-          name="pickupLocation"
-          type="text"
-          autocomplete="street-address"
-          placeholder="例如：屯門醫院"
-          required
-        />
+        <span class="booking-form__clearable-control">
+          <input
+            name="pickupLocation"
+            type="text"
+            autocomplete="off"
+            placeholder="例如：屯門醫院"
+            [value]="trip.pickup()?.address ?? ''"
+            (focus)="showRecentPickupPlaces()"
+            (input)="onPickupLocationInput($event)"
+            required
+          />
+          <button type="button" aria-label="Clear pickup location" (click)="clearPickupLocation()">×</button>
+        </span>
+        @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
+          <div class="booking-form__recent" role="listbox" aria-label="Recent pickup addresses 最近上車地點">
+            <p class="booking-form__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentPickupPlaces(); track place.address) {
+              <button type="button" role="option" (click)="selectRecentPickup(place)">
+                {{ place.address }}
+              </button>
+            }
+          </div>
+        }
       </label>
 
       <label class="booking-form__field">
         <span>🎯 目的地</span>
-        <input
-          name="destination"
-          type="text"
-          autocomplete="street-address"
-          placeholder="例如：香港眼科醫院"
-          required
-        />
+        <span class="booking-form__clearable-control">
+          <input
+            name="destination"
+            type="text"
+            autocomplete="off"
+            placeholder="例如：香港眼科醫院"
+            [value]="trip.dropoff()?.address ?? ''"
+            (focus)="showRecentDropoffPlaces()"
+            (input)="onDestinationInput($event)"
+            required
+          />
+          <button type="button" aria-label="Clear destination" (click)="clearDestination()">×</button>
+        </span>
+        @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
+          <div class="booking-form__recent" role="listbox" aria-label="Recent destination addresses 最近目的地">
+            <p class="booking-form__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentDropoffPlaces(); track place.address) {
+              <button type="button" role="option" (click)="selectRecentDropoff(place)">
+                {{ place.address }}
+              </button>
+            }
+          </div>
+        }
       </label>
     </fieldset>
 
