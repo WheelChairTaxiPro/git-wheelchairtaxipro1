@@ -13,4 +13,6 @@ export interface TripSelection {
   readonly dropoff: Place;
   readonly estimatedFareHkd?: number;
   readonly estimatedDistanceKm?: number;
+  readonly estimatedDurationText?: string;
+  readonly serviceFeeHkd?: number;
 }

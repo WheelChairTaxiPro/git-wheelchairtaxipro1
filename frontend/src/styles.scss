@@ -118,6 +118,13 @@ body {
 .page__placeholder-zh { font-size: 1rem; }
 .page__placeholder-en { font-size: 0.9rem; }
 
+.pac-container {
+  z-index: 2000;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(60, 64, 67, 0.24);
+  font-family: inherit;
+}
+
 @media (min-width: 600px) {
   .page {
     padding: 2rem 2rem;
