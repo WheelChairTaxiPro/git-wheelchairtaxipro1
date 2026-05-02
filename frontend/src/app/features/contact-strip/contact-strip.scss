@@ -11,11 +11,7 @@
   grid-auto-columns: 1fr;
   gap: 1px;
 
-  /* iOS home-indicator safe-area. No-op on Android / desktop. */
-  padding-bottom: env(safe-area-inset-bottom, 0);
-
   background: var(--mat-sys-outline-variant, #dcdcdc);
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .contact-strip__btn {
