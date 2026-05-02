@@ -12,10 +12,27 @@
   width: 100%;
   overflow: hidden;
 
-  &__banner,
+  &__banner {
+    flex: 0 0 auto;
+  }
+
+  /* Single row: primary nav (路線 | 預約) + contact strip (電話 | WhatsApp). */
+  &__bottom-bar {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    gap: 1px;
+    background: var(--mat-sys-outline-variant, #dcdcdc);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
   &__nav,
   &__contact {
-    flex: 0 0 auto;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   &__body {
