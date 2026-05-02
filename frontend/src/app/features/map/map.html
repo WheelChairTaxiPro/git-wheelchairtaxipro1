@@ -2,13 +2,13 @@
   <div class="map-page">
     <section class="map-page__search" aria-label="Search route locations">
       <label #pickupSearchField class="map-page__search-field">
-        <span class="map-page__search-label">上車地點 Pickup</span>
+        <span class="map-page__search-label">上車地點</span>
         <span class="map-page__search-control">
           <input
             #pickupInput
             type="text"
             autocomplete="off"
-            placeholder="搜尋上車地點 Search pickup"
+            placeholder="搜尋上車地點"
             aria-label="Search pickup location 上車地點"
             (focus)="showRecentPickupPlaces()"
             (input)="onPickupSearchInput($event)"
@@ -33,13 +33,13 @@
       </label>
 
       <label #dropoffSearchField class="map-page__search-field">
-        <span class="map-page__search-label">目的地 Destination</span>
+        <span class="map-page__search-label">目的地</span>
         <span class="map-page__search-control">
           <input
             #dropoffInput
             type="text"
             autocomplete="off"
-            placeholder="搜尋目的地 Search destination"
+            placeholder="搜尋目的地"
             aria-label="Search destination 目的地"
             (focus)="showRecentDropoffPlaces()"
             (input)="onDropoffSearchInput($event)"
