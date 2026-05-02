@@ -3,33 +3,36 @@
 }
 
 .top-banner {
-  position: relative;
-  background: #000;
-  line-height: 0;
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 0.25rem;
+  background: var(--mat-sys-surface-container, #f1f3f4);
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
 }
 
 .top-banner__hamburger {
-  position: absolute;
-  top: 0.25rem;
-  left: 0.25rem;
-  z-index: 2;
-
-  color: var(--mat-sys-on-primary, #fff);
-  background-color: rgba(0, 0, 0, 0.35);
+  color: var(--mat-sys-on-surface, #202124);
+  background-color: transparent;
 
   &:hover,
   &:focus-visible {
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--mat-sys-surface-container, #f1f3f4);
   }
 
   &:focus-visible {
     outline: 3px solid var(--mat-sys-primary-container, #e8f0fe);
     outline-offset: 2px;
   }
+
+  .mat-icon {
+    color: var(--mat-sys-on-surface, #202124);
+  }
 }
 
 .top-banner__link {
   display: block;
+  width: 100%;
   text-decoration: none;
 
   &:focus-visible {
@@ -42,7 +45,7 @@
   display: block;
   width: 100%;
   height: auto;
-  max-height: 15dvh;
+  max-height: 9dvh;
   object-fit: cover;
   object-position: center;
 }

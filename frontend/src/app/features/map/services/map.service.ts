@@ -38,8 +38,23 @@ export class MapService {
         pickup,
         dropoff,
         distanceKm: Math.round((leg.distance.value / 1000) * 10) / 10,
-        durationText: leg.duration.text,
+        durationText: this.formatDurationZh(leg.duration.value),
       },
     };
+  }
+
+  /** Format Directions duration (seconds) as "X 分鐘" / "X 小時 Y 分鐘" regardless of Google's locale string. */
+  private formatDurationZh(seconds: number): string {
+    const totalMinutes = Math.max(1, Math.round(seconds / 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (hours === 0) {
+      return `${minutes} 分鐘`;
+    }
+    if (minutes === 0) {
+      return `${hours} 小時`;
+    }
+    return `${hours} 小時 ${minutes} 分鐘`;
   }
 }

@@ -1,4 +1,4 @@
-<header class="top-banner" role="banner">
+<header class="top-banner" role="banner" (click)="drawerService.close()">
   <button
     type="button"
     mat-icon-button
@@ -6,20 +6,8 @@
     aria-label="Open navigation menu 開啟選單"
     aria-controls="app-drawer"
     [attr.aria-expanded]="drawerService.isOpen()"
-    (click)="drawerService.toggle()"
+    (click)="drawerService.toggle(); $event.stopPropagation()"
   >
     <mat-icon aria-hidden="true" fontIcon="menu" />
   </button>
-
-  <a class="top-banner__link" href="/" aria-label="Wheelchair Taxi Pro 專業輪椅的士 — home">
-    <img
-      class="top-banner__img"
-      src="/banner-header.png"
-      alt="Wheelchair Taxi Pro 專業輪椅的士 — professional service, caring, safe & reliable, service first"
-      width="1024"
-      height="200"
-      decoding="async"
-      fetchpriority="high"
-    />
-  </a>
 </header>

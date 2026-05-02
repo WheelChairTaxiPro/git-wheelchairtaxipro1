@@ -36,13 +36,12 @@ const SUBSET: IsActiveMatchOptions = {
 };
 
 /**
- * Wireframe source: initial-design/…_mobile_wireframe_description_…_v_5.md §3.
- * Tab order is fixed by the wireframe: Route → Booking → Pricing, left to right.
+ * Primary bottom-nav tabs. Pricing lives in the hamburger menu now, so only
+ * Route and Booking appear here.
  */
 const TABS: readonly Tab[] = [
-  { icon: 'map',      labelZh: '路線', labelEn: 'Route',   route: '/',        matchOptions: EXACT  },
-  { icon: 'event',    labelZh: '預約', labelEn: 'Booking', route: '/booking', matchOptions: SUBSET },
-  { icon: 'payments', labelZh: '收費', labelEn: 'Pricing', route: '/pricing', matchOptions: SUBSET },
+  { icon: 'map',   labelZh: '路線', labelEn: 'Route',   route: '/',        matchOptions: EXACT  },
+  { icon: 'event', labelZh: '預約', labelEn: 'Booking', route: '/booking', matchOptions: SUBSET },
 ];
 
 @Component({

@@ -4,7 +4,11 @@
 
 .contact-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Auto-fit equal columns for however many contact buttons are rendered,
+     so Call + WhatsApp split the strip 50/50, a third button would split it
+     into thirds, etc. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 1px;
 
   /* iOS home-indicator safe-area. No-op on Android / desktop. */
