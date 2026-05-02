@@ -6,19 +6,42 @@
 }
 
 .app-shell {
+  /*
+   * Reserve vertical space matching the fixed bottom bar so routed content /
+   * Google Maps never sits underneath it when the viewport or stacking context shifts.
+   * Tuned for one shared row (~64–72 px) + optional iOS safe-area inset.
+   */
+  --app-bottom-bar-reserved: calc(68px + env(safe-area-inset-bottom, 0px));
+
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  /* Border-box keeps padding-bottom inside dvh — flex children stay above fixed bar zone. */
   height: 100dvh;
   width: 100%;
   overflow: hidden;
+  padding-bottom: var(--app-bottom-bar-reserved);
+
+  @media (min-width: 600px) {
+    --app-bottom-bar-reserved: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
 
   &__banner {
     flex: 0 0 auto;
   }
 
-  /* Single row: primary nav (路線 | 預約) + contact strip (電話 | WhatsApp). */
+  /*
+   * Fixed bottom bar stays visible above Maps / panes (.pac-container is z-index 2000 globally).
+   * Without this the map iframe or fullscreen layers intermittently painted over the chrome.
+   */
   &__bottom-bar {
-    flex: 0 0 auto;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3100;
+
+    flex: none;
     display: flex;
     flex-direction: row;
     align-items: stretch;
