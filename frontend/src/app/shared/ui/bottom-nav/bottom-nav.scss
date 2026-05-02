@@ -4,7 +4,10 @@
 
 .bottom-nav {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Auto-fit equal columns regardless of tab count — Route + Booking split
+     50/50 today; if a third tab is added it'd split into thirds, etc. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 1px;
 
   background: var(--mat-sys-outline-variant, #dcdcdc);

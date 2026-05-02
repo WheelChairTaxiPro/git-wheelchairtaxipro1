@@ -1,15 +1,44 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.page--map {
+.page.page--map {
   max-width: none;
+  /* Full-bleed: no horizontal padding so the map spans the entire viewport width. */
+  padding: 0;
+  /* Reset the global `.page { margin: 0 auto }`, which otherwise absorbs free
+     space in the flex shell and collapses the page to its content width. */
+  margin: 0;
+  width: 100%;
+  /* Stretch to fill the shell's main area. */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .map-page {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  /* Small horizontal padding so the inputs / summary row aren't flush to the edge.
+     The map canvas breaks out of this via a negative margin below. */
+  padding: 0.25rem 1rem 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@media (min-width: 600px) {
+  .map-page {
+    padding: 0.25rem 1.5rem 0;
+  }
+}
+
+.map-page__summary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .map-page__search {
@@ -184,28 +213,11 @@
   color: #b3261e;
 }
 
-.map-page__summary {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
+.map-page__summary-line {
   margin: 0;
-
-  div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  dt {
-    font-weight: 700;
-    color: var(--mat-sys-on-surface, #202124);
-  }
-
-  dd {
-    margin: 0;
-    color: var(--mat-sys-on-surface, #202124);
-    line-height: 1.45;
-  }
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, #202124);
+  line-height: 1.45;
 }
 
 .map-page__fare-note {
@@ -217,16 +229,26 @@
 }
 
 .map-page__canvas {
-  min-height: 45dvh;
-  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
-  border-radius: 12px;
+  /* Fill remaining vertical space; the safety min-height keeps the map visible if flex is 0. */
+  flex: 1 1 auto;
+  min-height: 240px;
+  /* Break out of the .map-page horizontal padding so the map spans the full viewport width. */
+  margin-inline: -1rem;
+  border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
   overflow: hidden;
   background: #e5e3df;
 }
 
+@media (min-width: 600px) {
+  .map-page__canvas {
+    margin-inline: -1.5rem;
+  }
+}
+
 .map-page__actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.75rem;
 }
 
@@ -237,6 +259,7 @@
   border-radius: 999px;
   font: inherit;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -279,8 +302,22 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .map-page__actions {
+  .map-page__summary-row {
     flex-direction: row;
+    align-items: stretch;
+  }
+
+  .map-page__summary-row .map-page__panel {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .map-page__summary-row .map-page__actions {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .map-page__primary,
