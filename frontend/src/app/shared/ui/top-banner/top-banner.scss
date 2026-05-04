@@ -6,10 +6,28 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 48px;
+  min-height: 52px;
   padding: 0 0.25rem;
-  background: var(--mat-sys-surface-container, #f1f3f4);
+  background: var(--mat-sys-surface, #fff);
   border-bottom: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+}
+
+.top-banner__logo {
+  display: block;
+  flex-shrink: 0;
+  width: auto;
+  height: 38px;
+  max-height: calc(52px - 4px);
+  max-width: min(168px, 42vw);
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 600px) {
+  .top-banner__logo {
+    height: 42px;
+    max-width: min(192px, 36vw);
+  }
 }
 
 .top-banner__title {
