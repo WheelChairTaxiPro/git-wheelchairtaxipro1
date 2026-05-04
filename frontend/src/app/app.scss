@@ -7,11 +7,13 @@
 
 .app-shell {
   /*
-   * Reserve vertical space matching the fixed bottom bar so routed content /
-   * Google Maps never sits underneath it when the viewport or stacking context shifts.
-   * Tuned for one shared row (~64–72 px) + optional iOS safe-area inset.
+   * Reserve vertical space for the fixed bottom bar plus a small gap above it,
+   * so page content (including Google Maps) never overlaps the chrome.
    */
-  --app-bottom-bar-reserved: calc(68px + env(safe-area-inset-bottom, 0px));
+  --app-bottom-content-gap: 16px;
+  --app-bottom-bar-reserved: calc(
+    68px + env(safe-area-inset-bottom, 0px) + var(--app-bottom-content-gap)
+  );
 
   display: flex;
   flex-direction: column;
@@ -23,7 +25,9 @@
   padding-bottom: var(--app-bottom-bar-reserved);
 
   @media (min-width: 600px) {
-    --app-bottom-bar-reserved: calc(74px + env(safe-area-inset-bottom, 0px));
+    --app-bottom-bar-reserved: calc(
+      74px + env(safe-area-inset-bottom, 0px) + var(--app-bottom-content-gap)
+    );
   }
 
   &__banner {
