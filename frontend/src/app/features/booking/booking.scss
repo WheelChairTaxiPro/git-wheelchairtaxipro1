@@ -2,6 +2,21 @@
   display: block;
 }
 
+/* Prominent single-line fee reminder (aligns visually with pricing-page “重要提示” accent). */
+.booking-pricing-notice {
+  margin: 0;
+  padding: 0.85rem 1rem 0.85rem 1rem;
+  border-left: 4px solid #d4af37;
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, #d4af37 10%, var(--mat-sys-surface, #fff));
+  color: var(--mat-sys-on-surface, #202124);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+}
+
 .booking-form {
   display: flex;
   flex-direction: column;
@@ -47,11 +62,26 @@
   }
 }
 
+.booking-form__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
 .booking-form__title {
   margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 1.25rem;
   line-height: 1.3;
   color: var(--mat-sys-on-surface, #202124);
+}
+
+.booking-form__head .booking-form__submit {
+  flex: 1 1 0%;
+  min-width: 8rem;
+  padding-inline: 1.35rem;
 }
 
 .booking-form__section {
@@ -69,6 +99,32 @@
     font-weight: 700;
     color: var(--mat-sys-on-surface, #202124);
   }
+}
+
+.booking-form__row {
+  width: 100%;
+}
+
+.booking-form__row--trio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.booking-form__row--trio > .booking-form__field {
+  min-width: 0;
+}
+
+.booking-form__row--duo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.booking-form__row--duo > .booking-form__field {
+  min-width: 0;
 }
 
 .booking-form__field {
@@ -268,7 +324,44 @@
   border-radius: 0 8px 8px 0;
   background: #e6f4ea;
   color: #0d652d;
-  line-height: 1.5;
+  line-height: 1.55;
+
+  > p {
+    margin: 0;
+  }
+
+  > p + p {
+    margin-top: 0.65rem;
+  }
+
+  a {
+    color: #1557b8;
+    font-weight: 700;
+    text-decoration: underline;
+
+    &:hover,
+    &:focus-visible {
+      color: color-mix(in srgb, #1557b8 92%, #000);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1557b8;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+}
+
+@media (min-width: 840px) {
+  .booking-form__row--trio {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .booking-form__row--duo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 0.85rem;
+  }
 }
 
 @media (min-width: 720px) {
