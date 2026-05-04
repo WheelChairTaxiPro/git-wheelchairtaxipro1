@@ -11,7 +11,7 @@ import type { ContactChannels } from '../models/contact-channels';
 export const DEFAULT_CONTACT_CHANNELS: ContactChannels = {
   phone: '+642102824346',
   whatsapp: '642102824346',
-  whatsappPrefill: '我想預約輪椅的士 / I need a wheelchair taxi',
+  whatsappPrefill: '我想預約輪椅的士',
   wechatId: 'wheelchairtaxipro',
   wechatQrUrl: '/wechat-qr.svg',
 };
