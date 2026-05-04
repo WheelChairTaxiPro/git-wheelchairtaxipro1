@@ -4,6 +4,6 @@ export const bookingRoutes: Routes = [
   {
     path: '',
     loadComponent: () => import('./booking').then(m => m.Booking),
-    title: 'Booking | Wheelchair Taxi Pro',
+    title: '輪的 · 預約',
   },
 ];
