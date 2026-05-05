@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import type { LatLng, Place } from '../../shared/models/trip.models';
 import { TripStateService } from '../../shared/services/trip-state.service';
+import { formatPlaceDisplayAddress } from '../../shared/util/format-place-address';
 import { DEFAULT_MAP_ZOOM, HONG_KONG_CENTER, MAP_COPY, SELECTED_ROUTE_ZOOM_PADDING_PX, USER_LOCATION_ZOOM } from './map.config';
 import type { MapError, RouteSummary, SelectionStep } from './map.models';
 import { GoogleMapsLoaderService } from './services/google-maps-loader.service';
@@ -349,7 +350,8 @@ export class Map implements AfterViewInit, OnDestroy {
       if (this.dropoff()) {
         await this.calculateAndRenderRoute();
       }
-    } catch {
+    } catch (err) {
+      console.warn('[map] setPickup failed', err);
       this.setError('geocode-failed');
     } finally {
       this.isLoading.set(false);
@@ -368,7 +370,8 @@ export class Map implements AfterViewInit, OnDestroy {
       this.applyDropoffPlace(place);
       this.rememberRecentPlace('dropoff', place);
       await this.calculateAndRenderRoute();
-    } catch {
+    } catch (err) {
+      console.warn('[map] setDropoff failed', err);
       this.setError('geocode-failed');
     } finally {
       this.isLoading.set(false);
@@ -475,7 +478,9 @@ export class Map implements AfterViewInit, OnDestroy {
     const coords: LatLng = { lat: location.lat(), lng: location.lng() };
     const selected: Place = {
       coords,
-      address: place.formatted_address ?? place.name ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+      address:
+        formatPlaceDisplayAddress(place) ??
+        `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
     };
 
     if (target === 'pickup') {

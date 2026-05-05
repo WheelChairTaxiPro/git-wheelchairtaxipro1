@@ -45,11 +45,14 @@ Production frontend hosting is **Cloudflare Pages** (project name: `wheelchairta
 For a fast deploy without Git integration, use Cloudflare's Wrangler CLI. Build first, then push the static output straight to Pages:
 
 ```bash
+# Optional: frontend/.env.local with GOOGLE_MAPS_API_KEY=... (copy from .env.example)
 npm run build
 npx wrangler pages deploy dist/frontend/browser --project-name=wheelchairtaxipro --branch=main --commit-dirty=true
 ```
 
 Wrangler prints a per-deploy preview URL and updates the production alias (`https://wheelchairtaxipro.pages.dev`) automatically.
+
+**Stable branch-style URL** (e.g. `https://kkleung.wheelchairtaxipro.pages.dev`): use a Git branch named `kkleung`, or pass `--branch=kkleung` on the deploy command instead of `main`. See [`docs/LearningNotes/cloudflare-pages-multi-operator.md`](../docs/LearningNotes/cloudflare-pages-multi-operator.md) §1 for production vs preview (SEO) behaviour.
 
 **First time only** — authenticate against Cloudflare once:
 

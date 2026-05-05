@@ -1,16 +1,18 @@
 import type { ContactChannels } from '../models/contact-channels';
 
+import { CONTACT_MANIFEST_LINE } from './contact.manifest';
+
 /**
- * The single source of truth for Phase 1 contact channels.
+ * Public contact surfaces (strip, booking WhatsApp).
  *
- * Phase 1: single business identity, values committed directly (they are
- * public anyway). Phase 2 / multi-identity: replace with a value injected
- * at build time via Cloudflare Pages env vars (see
- * docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md §7).
+ * **Phone / WhatsApp digits** switch per Angular build (`production` = kkleung,
+ * `production-jameslo` = jameslo) via `./contact.manifest` file replacement.
+ *
+ * Multi-host Cloudflare: see `docs/LearningNotes/cloudflare-pages-multi-operator.md`.
  */
 export const DEFAULT_CONTACT_CHANNELS: ContactChannels = {
-  phone: '+642102824346',
-  whatsapp: '642102824346',
+  phone: CONTACT_MANIFEST_LINE.phone,
+  whatsapp: CONTACT_MANIFEST_LINE.whatsapp,
   whatsappPrefill: '我想預約輪椅的士',
   wechatId: 'wheelchairtaxipro',
   wechatQrUrl: '/wechat-qr.svg',
