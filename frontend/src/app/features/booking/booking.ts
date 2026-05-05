@@ -16,7 +16,9 @@ import {
 import { DEFAULT_CONTACT_CHANNELS } from '../../shared/config/contact.config';
 import type { LatLng, Place } from '../../shared/models/trip.models';
 import { TripStateService } from '../../shared/services/trip-state.service';
+import { formatPlaceDisplayAddress } from '../../shared/util/format-place-address';
 import { GoogleMapsLoaderService } from '../map/services/google-maps-loader.service';
+import { MapService } from '../map/services/map.service';
 
 const RECENT_PICKUP_STORAGE_KEY = 'wheelchairTaxiPro.recentPickupPlaces';
 const RECENT_DROPOFF_STORAGE_KEY = 'wheelchairTaxiPro.recentDropoffPlaces';
@@ -126,9 +128,12 @@ export class Booking implements AfterViewInit, OnDestroy {
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly mapsLoader = inject(GoogleMapsLoaderService);
+  private readonly mapService = inject(MapService);
   private pickupAutocompleteListener: google.maps.MapsEventListener | null = null;
   private dropoffAutocompleteListener: google.maps.MapsEventListener | null = null;
   private formValidationListenersAbort: AbortController | null = null;
+  private directionsService: google.maps.DirectionsService | null = null;
+  private routeRequestId = 0;
 
   protected readonly trip = inject(TripStateService);
   protected readonly vehicleOptions = VEHICLE_OPTIONS;
@@ -148,6 +153,65 @@ export class Booking implements AfterViewInit, OnDestroy {
       },
       { injector: this.injector },
     );
+
+    /** Whenever both endpoints are set (via autocomplete), compute a `TripSelection` with distance + ETA. */
+    effect(
+      () => {
+        const pickup = this.trip.pickup();
+        const dropoff = this.trip.dropoff();
+        if (pickup && dropoff && isPlatformBrowser(this.platformId)) {
+          void this.computeAndStoreTripRoute(pickup, dropoff);
+        }
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /**
+   * Use the existing `MapService.calculateRoute` so booking page shows the same
+   * distance/duration the map page does, even if the user never visits `/map`.
+   * Falls back to a selection without ETA if Maps is unavailable or the request fails.
+   */
+  private async computeAndStoreTripRoute(pickup: Place, dropoff: Place): Promise<void> {
+    const requestId = ++this.routeRequestId;
+    const existing = this.trip.selection();
+    if (
+      existing &&
+      existing.pickup === pickup &&
+      existing.dropoff === dropoff &&
+      typeof existing.estimatedDistanceKm === 'number'
+    ) {
+      return;
+    }
+
+    if (!this.mapsLoader.hasApiKey) {
+      this.trip.set({ pickup, dropoff });
+      return;
+    }
+
+    try {
+      const mapsApi = await this.mapsLoader.load();
+      if (requestId !== this.routeRequestId) {
+        return;
+      }
+      this.directionsService ??= new mapsApi.maps.DirectionsService();
+      const { summary } = await this.mapService.calculateRoute(this.directionsService, pickup, dropoff);
+      if (requestId !== this.routeRequestId) {
+        return;
+      }
+      this.trip.set({
+        pickup: summary.pickup,
+        dropoff: summary.dropoff,
+        estimatedDistanceKm: summary.distanceKm,
+        estimatedDurationText: summary.durationText,
+      });
+    } catch (err) {
+      console.warn('[booking] route calc failed', err);
+      if (requestId !== this.routeRequestId) {
+        return;
+      }
+      this.trip.set({ pickup, dropoff });
+    }
   }
 
   ngAfterViewInit(): void {
@@ -310,7 +374,9 @@ export class Booking implements AfterViewInit, OnDestroy {
     const coords: LatLng = { lat: location.lat(), lng: location.lng() };
     const selected: Place = {
       coords,
-      address: place.formatted_address ?? place.name ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+      address:
+        formatPlaceDisplayAddress(place) ??
+        `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
     };
 
     this.activeRecentList.set(null);
