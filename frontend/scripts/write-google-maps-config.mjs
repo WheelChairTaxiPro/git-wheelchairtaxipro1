@@ -1,9 +1,46 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-const key = process.env.GOOGLE_MAPS_API_KEY ?? '';
+/**
+ * Lightweight .env parsing (frontend/.env then frontend/.env.local).
+ * Lines: KEY=value (optional quotes). Blank lines and # comments skipped.
+ */
+function parseEnvFile(filePath) {
+  if (!existsSync(filePath)) return {};
+  const out = {};
+  const text = readFileSync(filePath, 'utf8');
+  for (const line of text.split(/\r?\n/)) {
+    const t = line.trim();
+    if (!t || t.startsWith('#')) continue;
+    const eq = t.indexOf('=');
+    if (eq <= 0) continue;
+    const k = t.slice(0, eq).trim();
+    let v = t.slice(eq + 1).trim();
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
+      v = v.slice(1, -1);
+    }
+    out[k] = v;
+  }
+  return out;
+}
+
+const cwd = process.cwd();
+
+const fileEnv = {
+  ...parseEnvFile(join(cwd, '.env')),
+  ...parseEnvFile(join(cwd, '.env.local')),
+};
+
+const key =
+  process.env.GOOGLE_MAPS_API_KEY?.trim() ||
+  fileEnv.GOOGLE_MAPS_API_KEY?.trim() ||
+  '';
+
 const outputPath = join(
-  process.cwd(),
+  cwd,
   'src',
   'app',
   'core',
@@ -22,4 +59,7 @@ export const GOOGLE_MAPS_API_KEY = ${JSON.stringify(key)};
 
 if (!key) {
   console.warn('[google-maps] GOOGLE_MAPS_API_KEY is empty. Map page will show setup state.');
+  console.warn(
+    '[google-maps] Set it in Cloudflare Pages (build env), the shell, or frontend/.env.local — see frontend/.env.example',
+  );
 }

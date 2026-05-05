@@ -56,6 +56,28 @@
               "outputHashing": "all",
               "serviceWorker": "ngsw-config.json"
             },
+            "production-jameslo": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json",
+              "fileReplacements": [
+                {
+                  "replace": "src/app/shared/config/contact.manifest.ts",
+                  "with": "src/app/shared/config/contact.manifest.jameslo.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,

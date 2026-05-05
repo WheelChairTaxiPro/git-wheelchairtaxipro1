@@ -6,13 +6,24 @@ import type { RouteSummary } from '../map.models';
 @Injectable({ providedIn: 'root' })
 export class MapService {
   async reverseGeocode(geocoder: google.maps.Geocoder, coords: LatLng): Promise<Place> {
-    const response = await geocoder.geocode({ location: coords });
-    const first = response.results[0];
-
-    return {
-      coords,
-      address: first?.formatted_address ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
-    };
+    const coordsLabel = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
+    try {
+      const response = await geocoder.geocode({ location: coords });
+      const first = response.results[0];
+      return {
+        coords,
+        address: first?.formatted_address ?? coordsLabel,
+      };
+    } catch (err) {
+      const status = (err as { code?: string })?.code;
+      // ZERO_RESULTS is expected when the user taps open water, remote parks, etc.
+      // Fall back to coordinates instead of surfacing an error.
+      if (status === 'ZERO_RESULTS') {
+        return { coords, address: coordsLabel };
+      }
+      console.warn('[map] reverseGeocode failed', { coords, status, err });
+      throw err;
+    }
   }
 
   async calculateRoute(
