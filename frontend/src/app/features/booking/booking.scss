@@ -62,6 +62,50 @@
   }
 }
 
+.booking-trip-summary__eta-block + .booking-trip-summary__eta-block {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed color-mix(in srgb, var(--mat-sys-on-primary-container, #174ea6) 35%, transparent);
+}
+
+.booking-trip-summary__eta-dt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  &-en {
+    font-size: 0.76rem;
+    font-weight: 600;
+    opacity: 0.78;
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+}
+
+.booking-trip-summary__eta-dd {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.booking-trip-summary__eta-duration {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.booking-trip-summary__eta-caption {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.45;
+  opacity: 0.92;
+
+  &--en {
+    opacity: 0.78;
+    font-size: 0.78rem;
+  }
+}
+
 .booking-form__head {
   display: flex;
   flex-wrap: wrap;

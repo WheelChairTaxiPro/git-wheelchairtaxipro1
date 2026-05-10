@@ -401,6 +401,9 @@ export class Map implements AfterViewInit, OnDestroy {
         dropoff: summary.dropoff,
         estimatedDistanceKm: summary.distanceKm,
         estimatedDurationText: summary.durationText,
+        etaRoutingBaseline: summary.etaRoutingBaseline,
+        etaTrafficNow: summary.etaTrafficNow,
+        etaAtScheduledPickup: summary.etaAtScheduledPickup,
       });
     } catch {
       this.setError('route-failed');
