@@ -192,7 +192,52 @@
             <dd>{{ selectedTrip.estimatedDistanceKm }} km</dd>
           </div>
         }
-        @if (selectedTrip.estimatedDurationText) {
+        @if (selectedTrip.etaRoutingBaseline; as baselineEta) {
+          <div class="booking-trip-summary__eta-block">
+            <dt class="booking-trip-summary__eta-dt">
+              <span lang="zh-Hant">預估行車時間 · 一般路線估算</span>
+              <span class="booking-trip-summary__eta-dt-en" lang="en">Drive time · routing baseline</span>
+            </dt>
+            <dd class="booking-trip-summary__eta-dd">
+              <strong class="booking-trip-summary__eta-duration">{{ baselineEta.durationText }}</strong>
+              <p class="booking-trip-summary__eta-caption">{{ baselineEta.captionZh }}</p>
+              <p class="booking-trip-summary__eta-caption booking-trip-summary__eta-caption--en" lang="en">
+                {{ baselineEta.captionEn }}
+              </p>
+            </dd>
+          </div>
+        }
+        @if (selectedTrip.etaTrafficNow; as nowEta) {
+          <div class="booking-trip-summary__eta-block">
+            <dt class="booking-trip-summary__eta-dt">
+              <span lang="zh-Hant">預估行車時間 · 以「現在」出發（含即時路况）</span>
+              <span class="booking-trip-summary__eta-dt-en" lang="en">Departure anchored to browser “now” (live traffic outlook)</span>
+            </dt>
+            <dd class="booking-trip-summary__eta-dd">
+              <strong class="booking-trip-summary__eta-duration">{{ nowEta.durationText }}</strong>
+              <p class="booking-trip-summary__eta-caption">{{ nowEta.captionZh }}</p>
+              <p class="booking-trip-summary__eta-caption booking-trip-summary__eta-caption--en" lang="en">
+                {{ nowEta.captionEn }}
+              </p>
+            </dd>
+          </div>
+        }
+        @if (selectedTrip.etaAtScheduledPickup; as schedEta) {
+          <div class="booking-trip-summary__eta-block">
+            <dt class="booking-trip-summary__eta-dt">
+              <span lang="zh-Hant">預估行車時間 · 以預約接送時間為準</span>
+              <span class="booking-trip-summary__eta-dt-en" lang="en">Pickup-time traffic outlook</span>
+            </dt>
+            <dd class="booking-trip-summary__eta-dd">
+              <strong class="booking-trip-summary__eta-duration">{{ schedEta.durationText }}</strong>
+              <p class="booking-trip-summary__eta-caption">{{ schedEta.captionZh }}</p>
+              <p class="booking-trip-summary__eta-caption booking-trip-summary__eta-caption--en" lang="en">
+                {{ schedEta.captionEn }}
+              </p>
+            </dd>
+          </div>
+        }
+        @if (!selectedTrip.etaTrafficNow && selectedTrip.estimatedDurationText) {
           <div>
             <dt>預估行車時間</dt>
             <dd>{{ selectedTrip.estimatedDurationText }}</dd>

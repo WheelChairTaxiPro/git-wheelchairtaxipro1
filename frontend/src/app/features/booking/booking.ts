@@ -30,6 +30,16 @@ function formatDateTimeLocalValue(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/** Parses `<input type="datetime-local">` value ( interpreted in the browser´s local TZ ). */
+function rawDatetimeLocalAsDate(datetimeLocalRaw: string): Date | undefined {
+  const t = datetimeLocalRaw.trim();
+  if (!t) {
+    return undefined;
+  }
+  const d = new Date(t);
+  return Number.isNaN(d.getTime()) ? undefined : d;
+}
+
 /** `YYYY-MM-DDTHH:mm` from `<input type="datetime-local">` → WhatsApp-readable line (e.g. 2026年05月04日, 21:59時). */
 function formatPickupDateTimeForWhatsapp(datetimeLocalValue: string): string {
   const trimmed = datetimeLocalValue.trim();
@@ -134,6 +144,9 @@ export class Booking implements AfterViewInit, OnDestroy {
   private formValidationListenersAbort: AbortController | null = null;
   private directionsService: google.maps.DirectionsService | null = null;
   private routeRequestId = 0;
+  /** Invalidates ETA when 「預約日期及時間」 changes ( Directions uses it for the third leg ). */
+  private readonly pickupScheduleFingerprint = signal(0);
+  private lastBookingRouteVariantsContext = '';
 
   protected readonly trip = inject(TripStateService);
   protected readonly vehicleOptions = VEHICLE_OPTIONS;
@@ -157,6 +170,7 @@ export class Booking implements AfterViewInit, OnDestroy {
     /** Whenever both endpoints are set (via autocomplete), compute a `TripSelection` with distance + ETA. */
     effect(
       () => {
+        void this.pickupScheduleFingerprint();
         const pickup = this.trip.pickup();
         const dropoff = this.trip.dropoff();
         if (pickup && dropoff && isPlatformBrowser(this.platformId)) {
@@ -168,23 +182,27 @@ export class Booking implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Use the existing `MapService.calculateRoute` so booking page shows the same
-   * distance/duration the map page does, even if the user never visits `/map`.
-   * Falls back to a selection without ETA if Maps is unavailable or the request fails.
+   * Same route matrix as `/map`: baseline ETA, live-traffic @ now, outlook @ 「預約日期及時間」.
    */
   private async computeAndStoreTripRoute(pickup: Place, dropoff: Place): Promise<void> {
     const requestId = ++this.routeRequestId;
+    const scheduleRaw = this.pickupDateTimeInput?.nativeElement?.value?.trim() ?? '';
+
+    /** Cache key ties ETAs to both endpoints and pickup schedule ( Directions call #3 ). */
+    const variantsContextKey = `${pickup.address}|${dropoff.address}|${scheduleRaw}`;
+
     const existing = this.trip.selection();
     if (
       existing &&
-      existing.pickup === pickup &&
-      existing.dropoff === dropoff &&
-      typeof existing.estimatedDistanceKm === 'number'
+      variantsContextKey === this.lastBookingRouteVariantsContext &&
+      typeof existing.estimatedDistanceKm === 'number' &&
+      existing.etaTrafficNow
     ) {
       return;
     }
 
     if (!this.mapsLoader.hasApiKey) {
+      this.lastBookingRouteVariantsContext = variantsContextKey;
       this.trip.set({ pickup, dropoff });
       return;
     }
@@ -195,21 +213,32 @@ export class Booking implements AfterViewInit, OnDestroy {
         return;
       }
       this.directionsService ??= new mapsApi.maps.DirectionsService();
-      const { summary } = await this.mapService.calculateRoute(this.directionsService, pickup, dropoff);
+      const scheduleDate = rawDatetimeLocalAsDate(scheduleRaw);
+      const { summary } = await this.mapService.calculateRouteVariants(
+        this.directionsService,
+        pickup,
+        dropoff,
+        scheduleDate ? { scheduledDeparture: scheduleDate } : {},
+      );
       if (requestId !== this.routeRequestId) {
         return;
       }
+      this.lastBookingRouteVariantsContext = variantsContextKey;
       this.trip.set({
         pickup: summary.pickup,
         dropoff: summary.dropoff,
         estimatedDistanceKm: summary.distanceKm,
         estimatedDurationText: summary.durationText,
+        etaRoutingBaseline: summary.etaRoutingBaseline,
+        etaTrafficNow: summary.etaTrafficNow,
+        etaAtScheduledPickup: summary.etaAtScheduledPickup,
       });
     } catch (err) {
       console.warn('[booking] route calc failed', err);
       if (requestId !== this.routeRequestId) {
         return;
       }
+      this.lastBookingRouteVariantsContext = variantsContextKey;
       this.trip.set({ pickup, dropoff });
     }
   }
@@ -218,6 +247,15 @@ export class Booking implements AfterViewInit, OnDestroy {
     this.syncAddressInputsFromTrip();
     this.applyDefaultPickupDateTime();
     if (isPlatformBrowser(this.platformId)) {
+      const dtEl = this.pickupDateTimeInput?.nativeElement;
+      const bumpPickupScheduleFingerprint = (): void =>
+        this.pickupScheduleFingerprint.update((n) => n + 1);
+      if (dtEl) {
+        dtEl.addEventListener('input', bumpPickupScheduleFingerprint, { passive: true });
+        dtEl.addEventListener('change', bumpPickupScheduleFingerprint);
+      }
+      /** Re-run ETA after 「預約日期及時間」 default is stamped ( Directions leg 3 reads this ). */
+      bumpPickupScheduleFingerprint();
       void this.setupPlacesAutocomplete();
       this.attachChineseFormValidation();
     }
@@ -564,14 +602,6 @@ export class Booking implements AfterViewInit, OnDestroy {
 
     const form = event.currentTarget as HTMLFormElement;
 
-    if (isPlatformBrowser(this.platformId)) {
-      const dtEl = this.pickupDateTimeInput?.nativeElement;
-      if (dtEl) {
-        dtEl.value = formatDateTimeLocalValue(new Date());
-        this.clearNativeFieldValidity(dtEl);
-      }
-    }
-
     if (!this.validateBookingFormZh(form)) {
       return;
     }
@@ -618,11 +648,23 @@ export class Booking implements AfterViewInit, OnDestroy {
 
     const selectedTrip = this.trip.selection();
     if (selectedTrip) {
-      lines.push('', '—— 已由地圖選路 ——');
+      lines.push('', '—— 路程估算 ——');
       if (typeof selectedTrip.estimatedDistanceKm === 'number') {
         lines.push(`預估距離：${selectedTrip.estimatedDistanceKm} km`);
       }
-      if (selectedTrip.estimatedDurationText) {
+      const b = selectedTrip.etaRoutingBaseline;
+      const n = selectedTrip.etaTrafficNow;
+      const s = selectedTrip.etaAtScheduledPickup;
+      if (b) {
+        lines.push(`行車時間（一般估算／不依出發時間及即時路况）：${b.durationText}`);
+      }
+      if (n) {
+        lines.push(`行車時間（以「現在」出發︰含即時路况推算）：${n.durationText}`);
+      }
+      if (s) {
+        lines.push(`行車時間（以預約接送時間︰路况預估）：${s.durationText}`);
+      }
+      if (!b && !n && selectedTrip.estimatedDurationText) {
         lines.push(`預估時間：${selectedTrip.estimatedDurationText}`);
       }
     }

@@ -1,4 +1,4 @@
-import type { LatLng, Place } from '../../shared/models/trip.models';
+import type { LatLng, Place, TripEtaLeg } from '../../shared/models/trip.models';
 
 export type SelectionStep = 'pickup' | 'dropoff' | 'complete';
 
@@ -6,7 +6,11 @@ export interface RouteSummary {
   readonly pickup: Place;
   readonly dropoff: Place;
   readonly distanceKm: number;
+  /** Primary display line — mirrors `etaTrafficNow` when available, otherwise baseline. */
   readonly durationText: string;
+  readonly etaRoutingBaseline: TripEtaLeg;
+  readonly etaTrafficNow: TripEtaLeg;
+  readonly etaAtScheduledPickup?: TripEtaLeg;
 }
 
 export interface MapError {
