@@ -8,17 +8,31 @@ import {
   OnDestroy,
   PLATFORM_ID,
   ViewChild,
+  computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 import { DEFAULT_CONTACT_CHANNELS } from '../../shared/config/contact.config';
-import type { LatLng, Place } from '../../shared/models/trip.models';
+import type { Place } from '../../shared/models/trip.models';
 import { TripStateService } from '../../shared/services/trip-state.service';
-import { formatPlaceDisplayAddress } from '../../shared/util/format-place-address';
+import { formatGooglePlaceDisplayAddress } from '../../shared/util/format-place-address';
+import {
+  hkLatLngBiasBounds,
+  importPlaceAutocompleteCtor,
+  latLngFromGooglePlaceLocation,
+  type GmpPlaceAutocompleteElement,
+  type GmpPlacePredictionSelectEvent,
+} from '../../shared/util/google-maps-new-place';
 import { GoogleMapsLoaderService } from '../map/services/google-maps-loader.service';
 import { MapService } from '../map/services/map.service';
+import {
+  PickupDatetimeDialog,
+  type PickupDatetimeDialogData,
+  type PickupDatetimeDialogResult,
+} from './pickup-datetime-dialog/pickup-datetime-dialog';
 
 const RECENT_PICKUP_STORAGE_KEY = 'wheelchairTaxiPro.recentPickupPlaces';
 const RECENT_DROPOFF_STORAGE_KEY = 'wheelchairTaxiPro.recentDropoffPlaces';
@@ -28,6 +42,29 @@ const MAX_RECENT_PLACES = 5;
 function formatDateTimeLocalValue(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** Booking trigger label — same 12 h + 上午／下午 as the picker (WhatsApp line stays 24 h). */
+function formatPickupScheduleButtonLabel_zhHant(datetimeLocalValue: string): string {
+  const trimmed = datetimeLocalValue.trim();
+  if (!trimmed) {
+    return '';
+  }
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(trimmed);
+  if (!m) {
+    return trimmed;
+  }
+  const [, year, month, day, hh, minute] = m;
+  const h24 = parseInt(hh, 10);
+  const minNum = parseInt(minute, 10);
+  const isPm = h24 >= 12;
+  let h12 = h24 % 12;
+  if (h12 === 0) {
+    h12 = 12;
+  }
+  const segment = isPm ? '下午' : '上午';
+  const minStr = String(minNum).padStart(2, '0');
+  return `${year}年${month}月${day}日，${segment} ${h12}:${minStr}`;
 }
 
 /** Parses `<input type="datetime-local">` value ( interpreted in the browser´s local TZ ). */
@@ -60,9 +97,6 @@ function chineseValidityMessage(
 ): string {
   const v = el.validity;
   if (v.valueMissing) {
-    if (el instanceof HTMLInputElement && el.type === 'datetime-local') {
-      return '請選擇預約日期及時間';
-    }
     if (el instanceof HTMLInputElement && el.type === 'number') {
       return '請填寫此欄位';
     }
@@ -123,13 +157,17 @@ const VEHICLE_OPTIONS: readonly VehicleOption[] = [
 
 @Component({
   selector: 'app-booking',
-  imports: [],
+  imports: [MatDialogModule],
   templateUrl: './booking.html',
   styleUrl: './booking.scss',
 })
 export class Booking implements AfterViewInit, OnDestroy {
   @ViewChild('pickupLocationField') private pickupLocationField?: ElementRef<HTMLElement>;
   @ViewChild('destinationField') private destinationField?: ElementRef<HTMLElement>;
+  @ViewChild('pickupAutocompleteHost')
+  private pickupAutocompleteHost?: ElementRef<HTMLElement>;
+  @ViewChild('dropoffAutocompleteHost')
+  private dropoffAutocompleteHost?: ElementRef<HTMLElement>;
   @ViewChild('pickupAddrInput') private pickupAddrInput?: ElementRef<HTMLInputElement>;
   @ViewChild('dropoffAddrInput') private dropoffAddrInput?: ElementRef<HTMLInputElement>;
   @ViewChild('pickupDateTimeInput') private pickupDateTimeInput?: ElementRef<HTMLInputElement>;
@@ -137,16 +175,24 @@ export class Booking implements AfterViewInit, OnDestroy {
 
   private readonly injector = inject(Injector);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly dialog = inject(MatDialog);
   private readonly mapsLoader = inject(GoogleMapsLoaderService);
   private readonly mapService = inject(MapService);
-  private pickupAutocompleteListener: google.maps.MapsEventListener | null = null;
-  private dropoffAutocompleteListener: google.maps.MapsEventListener | null = null;
+  private bookingPlacesAutocompleteAbort: AbortController | null = null;
+  /** New Places widget (`gmp-place-autocomplete`); mirrored into hidden-named inputs for `FormData`. */
+  private pickupPlaceAutocompleteEl: GmpPlaceAutocompleteElement | null = null;
+  private dropoffPlaceAutocompleteEl: GmpPlaceAutocompleteElement | null = null;
   private formValidationListenersAbort: AbortController | null = null;
-  private directionsService: google.maps.DirectionsService | null = null;
   private routeRequestId = 0;
   /** Invalidates ETA when 「預約日期及時間」 changes ( Directions uses it for the third leg ). */
   private readonly pickupScheduleFingerprint = signal(0);
-  private lastBookingRouteVariantsContext = '';
+  /**
+   * After we finish computing route variants once for `pickup|dropoff|schedule`, do not retry until the
+   * snapshot changes — otherwise reactive effects hammer Routes API / the console when the API errors.
+   */
+  private finalizedRouteVariantsKey = '';
+  /** Prevents overlapping duplicate calls for the same snapshot while `computeRoutes` is in flight. */
+  private inFlightRouteVariantsKey: string | null = null;
 
   protected readonly trip = inject(TripStateService);
   protected readonly vehicleOptions = VEHICLE_OPTIONS;
@@ -156,6 +202,13 @@ export class Booking implements AfterViewInit, OnDestroy {
   protected readonly recentPickupPlaces = signal<readonly Place[]>([]);
   protected readonly recentDropoffPlaces = signal<readonly Place[]>([]);
   protected readonly activeRecentList = signal<'pickup' | 'dropoff' | null>(null);
+  /** Mirrors hidden `pickupDateTime` (minute-precision local string). */
+  protected readonly pickupScheduleValue = signal('');
+  protected readonly pickupScheduleInvalid = signal(false);
+  protected readonly pickupScheduleDisplayLabel = computed(() => {
+    const v = this.pickupScheduleValue().trim();
+    return v ? formatPickupScheduleButtonLabel_zhHant(v) : '點選以選擇日期及時間';
+  });
 
   constructor() {
     effect(
@@ -185,37 +238,35 @@ export class Booking implements AfterViewInit, OnDestroy {
    * Same route matrix as `/map`: baseline ETA, live-traffic @ now, outlook @ 「預約日期及時間」.
    */
   private async computeAndStoreTripRoute(pickup: Place, dropoff: Place): Promise<void> {
-    const requestId = ++this.routeRequestId;
-    const scheduleRaw = this.pickupDateTimeInput?.nativeElement?.value?.trim() ?? '';
+    const scheduleRaw = this.pickupScheduleValue().trim();
 
-    /** Cache key ties ETAs to both endpoints and pickup schedule ( Directions call #3 ). */
+    /** Snapshot key: endpoints + 「預約日期及時間」 (third `computeRoutes` leg when scheduled ). */
     const variantsContextKey = `${pickup.address}|${dropoff.address}|${scheduleRaw}`;
 
-    const existing = this.trip.selection();
-    if (
-      existing &&
-      variantsContextKey === this.lastBookingRouteVariantsContext &&
-      typeof existing.estimatedDistanceKm === 'number' &&
-      existing.etaTrafficNow
-    ) {
+    if (variantsContextKey === this.finalizedRouteVariantsKey) {
+      return;
+    }
+    if (this.inFlightRouteVariantsKey === variantsContextKey) {
       return;
     }
 
-    if (!this.mapsLoader.hasApiKey) {
-      this.lastBookingRouteVariantsContext = variantsContextKey;
-      this.trip.set({ pickup, dropoff });
-      return;
-    }
+    const requestId = ++this.routeRequestId;
+    this.inFlightRouteVariantsKey = variantsContextKey;
 
     try {
+      if (!this.mapsLoader.hasApiKey) {
+        this.finalizedRouteVariantsKey = variantsContextKey;
+        this.trip.set({ pickup, dropoff });
+        return;
+      }
+
       const mapsApi = await this.mapsLoader.load();
       if (requestId !== this.routeRequestId) {
         return;
       }
-      this.directionsService ??= new mapsApi.maps.DirectionsService();
       const scheduleDate = rawDatetimeLocalAsDate(scheduleRaw);
       const { summary } = await this.mapService.calculateRouteVariants(
-        this.directionsService,
+        mapsApi,
         pickup,
         dropoff,
         scheduleDate ? { scheduledDeparture: scheduleDate } : {},
@@ -223,7 +274,7 @@ export class Booking implements AfterViewInit, OnDestroy {
       if (requestId !== this.routeRequestId) {
         return;
       }
-      this.lastBookingRouteVariantsContext = variantsContextKey;
+      this.finalizedRouteVariantsKey = variantsContextKey;
       this.trip.set({
         pickup: summary.pickup,
         dropoff: summary.dropoff,
@@ -234,12 +285,18 @@ export class Booking implements AfterViewInit, OnDestroy {
         etaAtScheduledPickup: summary.etaAtScheduledPickup,
       });
     } catch (err) {
-      console.warn('[booking] route calc failed', err);
-      if (requestId !== this.routeRequestId) {
-        return;
+      if (requestId === this.routeRequestId) {
+        console.warn(
+          '[booking] route calc failed — enable Routes API for this GCP project/key and wait a few minutes for propagation:',
+          err,
+        );
+        this.finalizedRouteVariantsKey = variantsContextKey;
+        this.trip.set({ pickup, dropoff });
       }
-      this.lastBookingRouteVariantsContext = variantsContextKey;
-      this.trip.set({ pickup, dropoff });
+    } finally {
+      if (this.inFlightRouteVariantsKey === variantsContextKey) {
+        this.inFlightRouteVariantsKey = null;
+      }
     }
   }
 
@@ -247,15 +304,8 @@ export class Booking implements AfterViewInit, OnDestroy {
     this.syncAddressInputsFromTrip();
     this.applyDefaultPickupDateTime();
     if (isPlatformBrowser(this.platformId)) {
-      const dtEl = this.pickupDateTimeInput?.nativeElement;
-      const bumpPickupScheduleFingerprint = (): void =>
-        this.pickupScheduleFingerprint.update((n) => n + 1);
-      if (dtEl) {
-        dtEl.addEventListener('input', bumpPickupScheduleFingerprint, { passive: true });
-        dtEl.addEventListener('change', bumpPickupScheduleFingerprint);
-      }
-      /** Re-run ETA after 「預約日期及時間」 default is stamped ( Directions leg 3 reads this ). */
-      bumpPickupScheduleFingerprint();
+      /** Re-run ETA after the default pickup time ( Directions leg 3 reads `pickupScheduleValue` ). */
+      this.pickupScheduleFingerprint.update((n) => n + 1);
       void this.setupPlacesAutocomplete();
       this.attachChineseFormValidation();
     }
@@ -264,8 +314,7 @@ export class Booking implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.formValidationListenersAbort?.abort();
     this.formValidationListenersAbort = null;
-    this.pickupAutocompleteListener?.remove();
-    this.dropoffAutocompleteListener?.remove();
+    this.teardownBookingPlacesAutocomplete();
   }
 
   /** Form uses `novalidate`; we validate in code on submit (`validateBookingFormZh`). Keeps clears on input/click. */
@@ -332,6 +381,8 @@ export class Booking implements AfterViewInit, OnDestroy {
    * only after assigning `customValidity`.
    */
   private validateBookingFormZh(form: HTMLFormElement): boolean {
+    this.copyPlacesWidgetsToBookingMirrors();
+
     const controls: Array<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> = [];
     for (let i = 0; i < form.elements.length; i++) {
       const node = form.elements[i];
@@ -352,6 +403,12 @@ export class Booking implements AfterViewInit, OnDestroy {
       el.setCustomValidity('');
     }
 
+    if (!this.pickupScheduleValue().trim()) {
+      this.pickupScheduleInvalid.set(true);
+      return false;
+    }
+    this.pickupScheduleInvalid.set(false);
+
     for (const el of controls) {
       if (!el.checkValidity()) {
         el.setCustomValidity(chineseValidityMessage(el));
@@ -363,100 +420,185 @@ export class Booking implements AfterViewInit, OnDestroy {
     return true;
   }
 
-  /** Same Places Autocomplete wiring as Map page (`google.maps.places.Autocomplete`). */
+  private teardownBookingPlacesAutocomplete(): void {
+    this.bookingPlacesAutocompleteAbort?.abort();
+    this.bookingPlacesAutocompleteAbort = null;
+    this.pickupPlaceAutocompleteEl = null;
+    this.dropoffPlaceAutocompleteEl = null;
+    const pickupHost = this.pickupAutocompleteHost?.nativeElement;
+    const dropoffHost = this.dropoffAutocompleteHost?.nativeElement;
+    if (pickupHost) {
+      pickupHost.innerHTML = '';
+    }
+    if (dropoffHost) {
+      dropoffHost.innerHTML = '';
+    }
+  }
+
+  /** Maps `gmp-select` selection → coords + TripState (`fetchFields` for display + geometry). */
+  private async handleBookingPacSelect(event: GmpPlacePredictionSelectEvent, target: 'pickup' | 'dropoff'): Promise<void> {
+    const prediction = event.placePrediction;
+    if (!prediction) {
+      return;
+    }
+
+    let place;
+    try {
+      place = prediction.toPlace();
+      await place.fetchFields({
+        fields: ['displayName', 'formattedAddress', 'location'],
+      });
+    } catch {
+      return;
+    }
+
+    const coords = latLngFromGooglePlaceLocation(place);
+    if (!coords) {
+      return;
+    }
+
+    const selected: Place = {
+      coords,
+      address:
+        formatGooglePlaceDisplayAddress(place) ?? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+    };
+
+    this.activeRecentList.set(null);
+    if (target === 'pickup') {
+      this.trip.setPickup(selected);
+      if (this.pickupPlaceAutocompleteEl) {
+        this.pickupPlaceAutocompleteEl.value = selected.address;
+      }
+      this.copyPlacesWidgetsToBookingMirrors();
+      this.clearNativeFieldValidity(this.pickupAddrInput?.nativeElement);
+    } else {
+      this.trip.setDropoff(selected);
+      if (this.dropoffPlaceAutocompleteEl) {
+        this.dropoffPlaceAutocompleteEl.value = selected.address;
+      }
+      this.copyPlacesWidgetsToBookingMirrors();
+      this.clearNativeFieldValidity(this.dropoffAddrInput?.nativeElement);
+    }
+    this.rememberRecentPlace(target, selected);
+  }
+
+  /** Keep named mirror inputs aligned with autocomplete widgets (`FormData` + `reportValidity`). */
+  private copyPlacesWidgetsToBookingMirrors(): void {
+    const pu = this.pickupAddrInput?.nativeElement;
+    const pac = this.pickupPlaceAutocompleteEl;
+    if (pu && pac) {
+      pu.value = pac.value;
+    }
+    const du = this.dropoffAddrInput?.nativeElement;
+    const dac = this.dropoffPlaceAutocompleteEl;
+    if (du && dac) {
+      du.value = dac.value;
+    }
+  }
+
+  private onPickupTypingChanged(raw: string): void {
+    this.activeRecentList.set(raw.trim() ? null : 'pickup');
+    const selectedPickup = this.trip.pickup();
+    if (!raw.trim() || (selectedPickup && raw !== selectedPickup.address)) {
+      this.trip.clearPickup();
+    }
+  }
+
+  private onDropoffTypingChanged(raw: string): void {
+    this.activeRecentList.set(raw.trim() ? null : 'dropoff');
+    const selectedDropoff = this.trip.dropoff();
+    if (!raw.trim() || (selectedDropoff && raw !== selectedDropoff.address)) {
+      this.trip.clearDropoff();
+    }
+  }
+
+  /**
+   * `PlaceAutocompleteElement` (`gmp-place-autocomplete`): booking page has no map — bias to HK /
+   * restrict to HK + NZ (same as legacy `componentRestrictions`).
+   */
   private async setupPlacesAutocomplete(): Promise<void> {
     if (
       !this.mapsLoader.hasApiKey ||
-      !this.pickupAddrInput?.nativeElement ||
-      !this.dropoffAddrInput?.nativeElement
+      !this.pickupAutocompleteHost?.nativeElement ||
+      !this.dropoffAutocompleteHost?.nativeElement
     ) {
       return;
     }
 
     try {
       const mapsApi = await this.mapsLoader.load();
-      const options: google.maps.places.AutocompleteOptions = {
-        componentRestrictions: { country: ['hk', 'nz'] },
-        fields: ['formatted_address', 'geometry', 'name'],
+      this.teardownBookingPlacesAutocomplete();
+
+      const PlaceAutocompleteCtor = await importPlaceAutocompleteCtor();
+      const hkBias = hkLatLngBiasBounds(mapsApi.maps.LatLngBounds);
+
+      const baseOpts = {
+        requestedLanguage: 'zh-HK',
+        requestedRegion: 'hk',
+        includedRegionCodes: ['HK', 'NZ'],
+        locationBias: hkBias,
+        noInputIcon: true,
       };
 
-      const pickupAutocomplete = new mapsApi.maps.places.Autocomplete(this.pickupAddrInput.nativeElement, options);
-      const dropoffAutocomplete = new mapsApi.maps.places.Autocomplete(this.dropoffAddrInput.nativeElement, options);
-
-      // Map page biases to the visible map; booking has no map — use HK-centered bounds instead.
-      const hkBias = new mapsApi.maps.LatLngBounds({ lat: 22.12, lng: 113.78 }, { lat: 22.58, lng: 114.48 });
-      pickupAutocomplete.setBounds(hkBias);
-      dropoffAutocomplete.setBounds(hkBias);
-
-      this.pickupAutocompleteListener = pickupAutocomplete.addListener('place_changed', () => {
-        this.applyAutocompletePlace(pickupAutocomplete, 'pickup');
+      const pickup = new PlaceAutocompleteCtor({
+        ...baseOpts,
+        placeholder: '請輸入或搜尋上車地點',
       });
-      this.dropoffAutocompleteListener = dropoffAutocomplete.addListener('place_changed', () => {
-        this.applyAutocompletePlace(dropoffAutocomplete, 'dropoff');
+      const dropoff = new PlaceAutocompleteCtor({
+        ...baseOpts,
+        placeholder: '請輸入或搜尋目的地',
       });
+
+      this.pickupAutocompleteHost.nativeElement.appendChild(pickup);
+      this.dropoffAutocompleteHost.nativeElement.appendChild(dropoff);
+
+      this.pickupPlaceAutocompleteEl = pickup;
+      this.dropoffPlaceAutocompleteEl = dropoff;
+
+      const ac = new AbortController();
+      this.bookingPlacesAutocompleteAbort = ac;
+
+      pickup.addEventListener(
+        'gmp-select',
+        (ev: Event) => void this.handleBookingPacSelect(ev as GmpPlacePredictionSelectEvent, 'pickup'),
+        { signal: ac.signal },
+      );
+      dropoff.addEventListener(
+        'gmp-select',
+        (ev: Event) => void this.handleBookingPacSelect(ev as GmpPlacePredictionSelectEvent, 'dropoff'),
+        { signal: ac.signal },
+      );
+
+      pickup.addEventListener('focus', () => this.showRecentPickupPlaces(), { signal: ac.signal });
+      pickup.addEventListener(
+        'input',
+        () => {
+          this.copyPlacesWidgetsToBookingMirrors();
+          this.onPickupTypingChanged(pickup.value);
+        },
+        { signal: ac.signal },
+      );
+
+      dropoff.addEventListener('focus', () => this.showRecentDropoffPlaces(), { signal: ac.signal });
+      dropoff.addEventListener(
+        'input',
+        () => {
+          this.copyPlacesWidgetsToBookingMirrors();
+          this.onDropoffTypingChanged(dropoff.value);
+        },
+        { signal: ac.signal },
+      );
     } catch {
-      // Missing key, blocked network, etc. — form still accepts typed addresses only.
-    }
-  }
-
-  private applyAutocompletePlace(
-    autocomplete: google.maps.places.Autocomplete,
-    target: 'pickup' | 'dropoff',
-  ): void {
-    const place = autocomplete.getPlace();
-    const location = place.geometry?.location;
-    if (!location) {
-      return;
-    }
-
-    const coords: LatLng = { lat: location.lat(), lng: location.lng() };
-    const selected: Place = {
-      coords,
-      address:
-        formatPlaceDisplayAddress(place) ??
-        `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
-    };
-
-    this.activeRecentList.set(null);
-    if (target === 'pickup') {
-      this.trip.setPickup(selected);
-      if (this.pickupAddrInput) {
-        const el = this.pickupAddrInput.nativeElement;
-        el.value = selected.address;
-        this.clearNativeFieldValidity(el);
-      }
-    } else {
-      this.trip.setDropoff(selected);
-      if (this.dropoffAddrInput) {
-        const el = this.dropoffAddrInput.nativeElement;
-        el.value = selected.address;
-        this.clearNativeFieldValidity(el);
-      }
-    }
-    this.rememberRecentPlace(target, selected);
-  }
-
-  protected onPickupLocationInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.activeRecentList.set(input.value.trim() ? null : 'pickup');
-    const selectedPickup = this.trip.pickup();
-    if (!input.value.trim() || (selectedPickup && input.value !== selectedPickup.address)) {
-      this.trip.clearPickup();
-    }
-  }
-
-  protected onDestinationInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.activeRecentList.set(input.value.trim() ? null : 'dropoff');
-    const selectedDropoff = this.trip.dropoff();
-    if (!input.value.trim() || (selectedDropoff && input.value !== selectedDropoff.address)) {
-      this.trip.clearDropoff();
+      // Missing key, unsupported browser, Places (New) not enabled, blocked network …
     }
   }
 
   protected clearPickupLocation(): void {
     this.activeRecentList.set(null);
     this.trip.clearPickup();
+    if (this.pickupPlaceAutocompleteEl) {
+      this.pickupPlaceAutocompleteEl.value = '';
+    }
     if (this.pickupAddrInput) {
       const el = this.pickupAddrInput.nativeElement;
       el.value = '';
@@ -467,6 +609,9 @@ export class Booking implements AfterViewInit, OnDestroy {
   protected clearDestination(): void {
     this.activeRecentList.set(null);
     this.trip.clearDropoff();
+    if (this.dropoffPlaceAutocompleteEl) {
+      this.dropoffPlaceAutocompleteEl.value = '';
+    }
     if (this.dropoffAddrInput) {
       const el = this.dropoffAddrInput.nativeElement;
       el.value = '';
@@ -491,10 +636,12 @@ export class Booking implements AfterViewInit, OnDestroy {
   protected selectRecentPickup(place: Place): void {
     this.activeRecentList.set(null);
     this.trip.setPickup(place);
+    if (this.pickupPlaceAutocompleteEl) {
+      this.pickupPlaceAutocompleteEl.value = place.address;
+    }
+    this.copyPlacesWidgetsToBookingMirrors();
     if (this.pickupAddrInput) {
-      const el = this.pickupAddrInput.nativeElement;
-      el.value = place.address;
-      this.clearNativeFieldValidity(el);
+      this.clearNativeFieldValidity(this.pickupAddrInput.nativeElement);
     }
     this.rememberRecentPlace('pickup', place);
   }
@@ -502,10 +649,12 @@ export class Booking implements AfterViewInit, OnDestroy {
   protected selectRecentDropoff(place: Place): void {
     this.activeRecentList.set(null);
     this.trip.setDropoff(place);
+    if (this.dropoffPlaceAutocompleteEl) {
+      this.dropoffPlaceAutocompleteEl.value = place.address;
+    }
+    this.copyPlacesWidgetsToBookingMirrors();
     if (this.dropoffAddrInput) {
-      const el = this.dropoffAddrInput.nativeElement;
-      el.value = place.address;
-      this.clearNativeFieldValidity(el);
+      this.clearNativeFieldValidity(this.dropoffAddrInput.nativeElement);
     }
     this.rememberRecentPlace('dropoff', place);
   }
@@ -536,6 +685,9 @@ export class Booking implements AfterViewInit, OnDestroy {
     this.removeRecentPlace('pickup', place);
     if (this.trip.pickup()?.address === place.address) {
       this.trip.clearPickup();
+      if (this.pickupPlaceAutocompleteEl) {
+        this.pickupPlaceAutocompleteEl.value = '';
+      }
       if (this.pickupAddrInput) {
         const el = this.pickupAddrInput.nativeElement;
         el.value = '';
@@ -548,6 +700,9 @@ export class Booking implements AfterViewInit, OnDestroy {
     this.removeRecentPlace('dropoff', place);
     if (this.trip.dropoff()?.address === place.address) {
       this.trip.clearDropoff();
+      if (this.dropoffPlaceAutocompleteEl) {
+        this.dropoffPlaceAutocompleteEl.value = '';
+      }
       if (this.dropoffAddrInput) {
         const el = this.dropoffAddrInput.nativeElement;
         el.value = '';
@@ -556,44 +711,105 @@ export class Booking implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** Pre-fill empty `datetime-local` with now; user can change anytime. */
+  /** Pre-fill empty schedule with now (dialog + ETAs use the same string). */
   private applyDefaultPickupDateTime(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
     const el = this.pickupDateTimeInput?.nativeElement;
-    if (!el || el.value) {
+    if (!el) {
       return;
     }
-    el.value = formatDateTimeLocalValue(new Date());
+    if (el.value) {
+      this.pickupScheduleValue.set(el.value);
+      return;
+    }
+    const v = formatDateTimeLocalValue(new Date());
+    el.value = v;
+    this.pickupScheduleValue.set(v);
     this.clearNativeFieldValidity(el);
   }
 
-  /** Keep native inputs aligned with TripState except while the user is typing in that field. */
+  private commitPickupSchedule(value: string): void {
+    this.pickupScheduleValue.set(value);
+    const el = this.pickupDateTimeInput?.nativeElement;
+    if (el) {
+      el.value = value;
+      this.clearNativeFieldValidity(el);
+    }
+    this.pickupScheduleFingerprint.update((n) => n + 1);
+  }
+
+  /** Opens the sheet with explicit 「設定」 — native pickers cannot add a Set button. */
+  protected openPickupScheduleDialog(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    const data: PickupDatetimeDialogData = { initialValue: this.pickupScheduleValue() };
+    const ref = this.dialog.open(PickupDatetimeDialog, {
+      data,
+      width: 'min(100vw - 32px, 440px)',
+      autoFocus: 'dialog',
+    });
+    ref.afterClosed().subscribe((result: PickupDatetimeDialogResult | undefined) => {
+      if (!result || result.kind === 'cancel') {
+        return;
+      }
+      if (result.kind === 'set') {
+        this.commitPickupSchedule(result.value);
+        this.pickupScheduleInvalid.set(false);
+      }
+    });
+  }
+
+  /** Keep Places widgets (+ mirror inputs) aligned with TripState unless the widget is focused. */
   private syncAddressInputsFromTrip(): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    const pickupPlace = this.trip.pickup();
-    const dropoffPlace = this.trip.dropoff();
+    const nextPickupAddr = this.trip.pickup()?.address ?? '';
+    const nextDropoffAddr = this.trip.dropoff()?.address ?? '';
 
-    const pickupEl = this.pickupAddrInput?.nativeElement;
-    if (pickupEl && document.activeElement !== pickupEl) {
-      const next = pickupPlace?.address ?? '';
-      if (pickupEl.value !== next) {
-        pickupEl.value = next;
+    const pacBusyPickup = !!this.pickupPlaceAutocompleteEl?.matches(':focus-within');
+    if (!pacBusyPickup) {
+      if (this.pickupPlaceAutocompleteEl) {
+        if (this.pickupPlaceAutocompleteEl.value !== nextPickupAddr) {
+          this.pickupPlaceAutocompleteEl.value = nextPickupAddr;
+        }
+      } else if (this.pickupAddrInput?.nativeElement) {
+        const el = this.pickupAddrInput.nativeElement;
+        if (el.value !== nextPickupAddr) {
+          el.value = nextPickupAddr;
+        }
+        this.clearNativeFieldValidity(el);
       }
-      this.clearNativeFieldValidity(pickupEl);
     }
 
-    const dropoffEl = this.dropoffAddrInput?.nativeElement;
-    if (dropoffEl && document.activeElement !== dropoffEl) {
-      const next = dropoffPlace?.address ?? '';
-      if (dropoffEl.value !== next) {
-        dropoffEl.value = next;
+    const pacBusyDrop = !!this.dropoffPlaceAutocompleteEl?.matches(':focus-within');
+    if (!pacBusyDrop) {
+      if (this.dropoffPlaceAutocompleteEl) {
+        if (this.dropoffPlaceAutocompleteEl.value !== nextDropoffAddr) {
+          this.dropoffPlaceAutocompleteEl.value = nextDropoffAddr;
+        }
+      } else if (this.dropoffAddrInput?.nativeElement) {
+        const el = this.dropoffAddrInput.nativeElement;
+        if (el.value !== nextDropoffAddr) {
+          el.value = nextDropoffAddr;
+        }
+        this.clearNativeFieldValidity(el);
       }
-      this.clearNativeFieldValidity(dropoffEl);
+    }
+
+    this.copyPlacesWidgetsToBookingMirrors();
+
+    const mirrorPick = this.pickupAddrInput?.nativeElement;
+    if (mirrorPick) {
+      this.clearNativeFieldValidity(mirrorPick);
+    }
+    const mirrorDrop = this.dropoffAddrInput?.nativeElement;
+    if (mirrorDrop) {
+      this.clearNativeFieldValidity(mirrorDrop);
     }
   }
 
