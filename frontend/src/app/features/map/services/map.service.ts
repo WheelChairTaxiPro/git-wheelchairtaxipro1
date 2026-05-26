@@ -5,8 +5,54 @@ import type { RouteSummary } from '../map.models';
 
 const SCHEDULE_NEAR_NOW_MS = 120_000;
 
+/**
+ * Routes API with live traffic requires `departureTime` strictly in the future vs Google's clock.
+ * `new Date()` often fails with INVALID_ARGUMENT ("Timestamp must be set to a future time.")
+ * when the device clock lags or the request hits the same wall second.
+ */
+const TRAFFIC_DEPARTURE_MIN_LEAD_MS = 90_000;
+
+/**
+ * Route returned from `google.maps.routes.Route.computeRoutes` — only the fields we request.
+ * (Full `Route` typing may lag in `@types/google.maps`.)
+ */
+export interface ComputedDrivingRoute {
+  readonly durationMillis?: number | null;
+  readonly staticDurationMillis?: number | null;
+  readonly distanceMeters?: number | null;
+  readonly viewport?: google.maps.LatLngBounds | null;
+  readonly path?: ReadonlyArray<google.maps.LatLngLiteral | google.maps.LatLngAltitudeLiteral> | null;
+  createPolylines(options?: Record<string, unknown>): Promise<readonly google.maps.Polyline[]>;
+}
+
+export interface RouteVariantsComputed {
+  /** Traffic-aware @ "now" geometry for drawing on the map. */
+  readonly routeForMap: ComputedDrivingRoute;
+  readonly summary: RouteSummary;
+}
+
+interface RouteLibrary {
+  Route: {
+    computeRoutes(
+      request: google.maps.routes.ComputeRoutesRequest,
+    ): Promise<{ routes?: readonly ComputedDrivingRoute[] }>;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class MapService {
+  private routeLibraryPromise: Promise<RouteLibrary['Route']> | null = null;
+
+  private getRouteClass(): Promise<RouteLibrary['Route']> {
+    this.routeLibraryPromise ??= (async () => {
+      const lib = (await google.maps.importLibrary(
+        'routes',
+      )) as unknown as RouteLibrary;
+      return lib.Route;
+    })();
+    return this.routeLibraryPromise;
+  }
+
   async reverseGeocode(geocoder: google.maps.Geocoder, coords: LatLng): Promise<Place> {
     const coordsLabel = `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
     try {
@@ -27,27 +73,46 @@ export class MapService {
   }
 
   /**
-   * Baseline ETA + departure-time-aware ETAs using up to three Directions route() calls:
-   * 1) No `drivingOptions` → typical leg duration without departure-time traffic.
-   * 2) `departureTime = Date.now()` → `duration_in_traffic` when Maps returns it.
-   * 3) Optional `scheduledDeparture` when far enough from now → traffic projection for pickup time.
+   * Baseline + departure-time-aware ETAs using Routes `computeRoutes`:
+   * - static / TRAFFIC_UNAWARE baseline duration
+   * - TRAFFIC_AWARE_OPTIMAL @ now → traffic duration (falls back to baseline if traffic routing fails)
+   * - optional scheduled departure (third leg) when far enough from now
    */
   async calculateRouteVariants(
-    directionsService: google.maps.DirectionsService,
+    _mapsApi: typeof google,
     pickup: Place,
     dropoff: Place,
     options?: { readonly scheduledDeparture?: Date },
-  ): Promise<{ result: google.maps.DirectionsResult; summary: RouteSummary }> {
-    const baselineResult = await this.route(directionsService, pickup, dropoff);
+  ): Promise<RouteVariantsComputed> {
+    const baselineRoute = await this.computeDrivingRoute(pickup, dropoff, {
+      routingPreference: 'TRAFFIC_UNAWARE',
+    });
+
+    const baselineSeconds = this.baselineSecondsFromRoute(baselineRoute);
 
     const now = new Date();
-    const trafficNowResult = await this.route(directionsService, pickup, dropoff, now);
+    const departureForTrafficNow = this.coerceDepartureTimeForTraffic(now);
+    let trafficNowRoute = baselineRoute;
+    let trafficFallback = false;
+    try {
+      trafficNowRoute = await this.computeDrivingRoute(pickup, dropoff, {
+        routingPreference: 'TRAFFIC_AWARE_OPTIMAL',
+        departureTime: departureForTrafficNow,
+        trafficModel: google.maps.TrafficModel.BEST_GUESS,
+      });
+    } catch (err) {
+      /*
+       * Live-traffic routing can reject or return no route in regions with limited coverage
+       * while the TRAFFIC_UNAWARE baseline still succeeds — keep geometry + baseline ETA instead of failing outright.
+       */
+      console.warn('[map] TRAFFIC_AWARE_OPTIMAL route failed; using TRAFFIC_UNAWARE fallback.', err);
+      trafficNowRoute = baselineRoute;
+      trafficFallback = true;
+    }
 
-    const baseLeg = this.requireLeg(baselineResult);
-    const nowLeg = this.requireLeg(trafficNowResult);
-
-    const baselineSeconds = this.baselineSecondsFromLeg(baseLeg);
-    const trafficNowSeconds = this.trafficSecondsFromLeg(nowLeg, baselineSeconds);
+    const trafficNowSeconds = trafficFallback
+      ? baselineSeconds
+      : this.trafficSecondsFromRoute(trafficNowRoute, baselineSeconds);
 
     let scheduledSlice: TripEtaLeg | undefined;
     const sched = options?.scheduledDeparture;
@@ -55,7 +120,9 @@ export class MapService {
       const delta = Math.abs(sched.getTime() - now.getTime());
       if (delta <= SCHEDULE_NEAR_NOW_MS) {
         scheduledSlice = this.buildEtaTrafficSlice(
-          nowLeg.duration_in_traffic?.value ?? trafficNowSeconds,
+          trafficNowRoute.durationMillis != null
+            ? trafficNowRoute.durationMillis / 1000
+            : trafficNowSeconds,
           sched.toISOString(),
           '預約出發時間接近此刻',
           `Scheduled pickup almost now — estimated same live-traffic ETA (${this.formatUtcIso(sched)}).`,
@@ -63,10 +130,15 @@ export class MapService {
         );
       } else {
         try {
-          const schedResult = await this.route(directionsService, pickup, dropoff, sched);
-          const sl = this.requireLeg(schedResult);
+          const schedRoute = await this.computeDrivingRoute(pickup, dropoff, {
+            routingPreference: 'TRAFFIC_AWARE_OPTIMAL',
+            departureTime: this.coerceDepartureTimeForTraffic(sched),
+            trafficModel: google.maps.TrafficModel.BEST_GUESS,
+          });
           const sec =
-            sl.duration_in_traffic?.value ?? sl.duration?.value ?? baselineSeconds;
+            schedRoute.durationMillis != null
+              ? schedRoute.durationMillis / 1000
+              : baselineSeconds;
           scheduledSlice = this.buildEtaTrafficSlice(
             sec,
             sched.toISOString(),
@@ -74,7 +146,7 @@ export class MapService {
             `Estimated using traffic outlook for pickup time (${this.formatUtcIso(sched)}).`,
           );
         } catch (e) {
-          console.warn('[map] scheduled-directions failed', e);
+          console.warn('[map] scheduled-route failed', e);
         }
       }
     }
@@ -89,13 +161,17 @@ export class MapService {
     const etaTrafficNow = this.buildEtaTrafficSlice(
       trafficNowSeconds,
       now.toISOString(),
-      '以「現在」為出發時間推算',
-      `Departure anchored to browser "now": ${this.formatUtcIso(now)}.`,
+      trafficFallback
+        ? '即時路况未能套用，沿用基本車程估算'
+        : '以「現在」為出發時間推算',
+      trafficFallback
+        ? 'Live-traffic routing was unavailable; showing baseline drive-time estimate instead.'
+        : `Departure anchored to browser "now": ${this.formatUtcIso(now)}.`,
     );
 
     const distanceKm =
       Math.round(
-        (((nowLeg.distance?.value ?? baseLeg.distance?.value) ?? 0) / 1000) * 10,
+        (((trafficNowRoute.distanceMeters ?? baselineRoute.distanceMeters) ?? 0) / 1000) * 10,
       ) / 10;
 
     const summary: RouteSummary = {
@@ -108,69 +184,84 @@ export class MapService {
       etaAtScheduledPickup: scheduledSlice,
     };
 
-    return { result: trafficNowResult, summary };
+    return { routeForMap: trafficNowRoute, summary };
   }
 
-  /** @deprecated Prefer `calculateRouteVariants` — kept for callers that only need one matrix. */
   async calculateRoute(
-    directionsService: google.maps.DirectionsService,
+    mapsApi: typeof google,
     pickup: Place,
     dropoff: Place,
-  ): Promise<{ result: google.maps.DirectionsResult; summary: RouteSummary }> {
-    return this.calculateRouteVariants(directionsService, pickup, dropoff);
+  ): Promise<RouteVariantsComputed> {
+    return this.calculateRouteVariants(mapsApi, pickup, dropoff);
   }
 
-  private async route(
-    directionsService: google.maps.DirectionsService,
+  /**
+   * Bump departure into the future so TRAFFIC_AWARE_* requests satisfy Routes API validation.
+   * Preserves `when` when it is already sufficiently ahead (e.g. real future bookings).
+   */
+  private coerceDepartureTimeForTraffic(when: Date): Date {
+    const anchor = Number.isFinite(when.getTime()) ? when.getTime() : Date.now();
+    const minTs = Date.now() + TRAFFIC_DEPARTURE_MIN_LEAD_MS;
+    return new Date(Math.max(anchor, minTs));
+  }
+
+  private async computeDrivingRoute(
     pickup: Place,
     dropoff: Place,
-    departure?: Date,
-  ): Promise<google.maps.DirectionsResult> {
-    const request: google.maps.DirectionsRequest = {
+    opts: {
+      readonly routingPreference:
+        | 'TRAFFIC_UNAWARE'
+        | 'TRAFFIC_AWARE'
+        | 'TRAFFIC_AWARE_OPTIMAL';
+      readonly departureTime?: Date;
+      readonly trafficModel?: google.maps.TrafficModel;
+    },
+  ): Promise<ComputedDrivingRoute> {
+    const Route = await this.getRouteClass();
+
+    /*
+     * Omit `regionCode` when using explicit lat/lng: a Hong Kong bias was breaking valid routes
+     * outside HK (and the REST shape is `regionCode`, not `region`).
+     */
+    const request = {
       origin: pickup.coords,
       destination: dropoff.coords,
       travelMode: google.maps.TravelMode.DRIVING,
-      region: 'HK',
-    };
-    if (departure && Number.isFinite(departure.getTime())) {
-      request.drivingOptions = {
-        departureTime: departure,
-        trafficModel: google.maps.TrafficModel.BEST_GUESS,
-      };
+      routingPreference: opts.routingPreference,
+      fields: ['durationMillis', 'distanceMeters', 'staticDurationMillis', 'path', 'viewport'],
+      ...(opts.departureTime ? { departureTime: opts.departureTime } : {}),
+      ...(opts.trafficModel != null ? { trafficModel: opts.trafficModel } : {}),
+    } as google.maps.routes.ComputeRoutesRequest;
+
+    const response = await Route.computeRoutes(request);
+    const route = response.routes?.[0] as ComputedDrivingRoute | undefined;
+
+    if (!route) {
+      throw new Error('Routes response contained no routes.');
+    }
+    const dist = route.distanceMeters;
+    const durMs = route.durationMillis ?? route.staticDurationMillis;
+    if (dist == null || durMs == null) {
+      throw new Error('Routes response missing distance/duration.');
     }
 
-    const result = await directionsService.route(request);
-
-    const leg = result.routes[0]?.legs?.[0];
-    if (!leg?.distance?.value || !leg.duration?.value) {
-      throw new Error('Directions response did not include distance/duration.');
-    }
-
-    return result;
+    return route;
   }
 
-  private requireLeg(result: google.maps.DirectionsResult): google.maps.DirectionsLeg {
-    const leg = result.routes[0]?.legs?.[0];
-    if (!leg) {
-      throw new Error('Directions response did not include legs.');
+  private baselineSecondsFromRoute(route: ComputedDrivingRoute): number {
+    const ms = route.staticDurationMillis ?? route.durationMillis;
+    if (ms == null || !Number.isFinite(ms)) {
+      throw new Error('Baseline route duration missing.');
     }
-    const dist = leg.distance?.value;
-    const dur = leg.duration?.value;
-    if (dist == null || dur == null) {
-      throw new Error('Directions response did not include distance/duration.');
-    }
-    return leg;
+    return Math.max(1, ms / 1000);
   }
 
-  private baselineSecondsFromLeg(leg: google.maps.DirectionsLeg): number {
-    const dur = leg.duration?.value;
-    if (dur == null) throw new Error('Directions leg missing baseline duration.');
-    return dur;
-  }
-
-  private trafficSecondsFromLeg(leg: google.maps.DirectionsLeg, fallback: number): number {
-    const t = leg.duration_in_traffic?.value ?? leg.duration?.value ?? fallback;
-    return t ?? fallback;
+  private trafficSecondsFromRoute(route: ComputedDrivingRoute, fallbackSeconds: number): number {
+    const dur =
+      typeof route.durationMillis === 'number' && Number.isFinite(route.durationMillis)
+        ? route.durationMillis / 1000
+        : fallbackSeconds;
+    return Math.max(1, dur);
   }
 
   private buildEtaTrafficSlice(
@@ -213,7 +304,7 @@ export class MapService {
     }
   }
 
-  /** Format Directions duration (seconds) as "X 分鐘" / "X 小時 Y 分鐘" regardless of Google's locale string. */
+  /** Format route duration (seconds) as "X 分鐘" / "X 小時 Y 分鐘". */
   private formatDurationZh(seconds: number): string {
     const totalMinutes = Math.max(1, Math.round(seconds / 60));
     const hours = Math.floor(totalMinutes / 60);

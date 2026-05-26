@@ -41,16 +41,25 @@
       <legend>🕒 行程資料</legend>
 
       <div class="booking-form__row booking-form__row--trio">
-        <label class="booking-form__field booking-form__field--standard">
+        <div class="booking-form__field booking-form__field--standard booking-form__field--pickup-schedule">
           <span>📅 預約日期及時間</span>
-          <input
-            #pickupDateTimeInput
-            name="pickupDateTime"
-            type="datetime-local"
-            lang="zh-Hant"
-            required
-          />
-        </label>
+          <div class="booking-form__pickup-schedule">
+            <button
+              type="button"
+              class="booking-form__pickup-schedule-trigger"
+              (click)="openPickupScheduleDialog()"
+              [class.booking-form__pickup-schedule-trigger--invalid]="pickupScheduleInvalid()"
+              [attr.aria-invalid]="pickupScheduleInvalid() ? 'true' : null"
+              lang="zh-Hant"
+            >
+              {{ pickupScheduleDisplayLabel() }}
+            </button>
+            <input #pickupDateTimeInput type="hidden" name="pickupDateTime" autocomplete="off" />
+          </div>
+          @if (pickupScheduleInvalid()) {
+            <p class="booking-form__field-error" role="alert" lang="zh-Hant">請選擇預約日期及時間</p>
+          }
+        </div>
 
         <label class="booking-form__field booking-form__field--standard">
           <span>👨‍👩‍👧 總人數（包括輪椅乘客）</span>
@@ -74,21 +83,20 @@
       <div class="booking-route__search">
         <label #pickupLocationField class="booking-route__search-field">
           <span class="booking-route__search-label">上車地點</span>
-          <span class="booking-route__search-control">
-            <input
-              #pickupAddrInput
-              name="pickupLocation"
-              type="text"
-              autocomplete="off"
-              lang="zh-Hant"
-              placeholder="請輸入或搜尋上車地點"
-              aria-label="上車地點"
-              (focus)="showRecentPickupPlaces()"
-              (input)="onPickupLocationInput($event)"
-              required
-            />
+          <span class="booking-route__search-control booking-route__search-control--gmp">
+            <span #pickupAutocompleteHost class="booking-route__gmp-slot"></span>
             <button type="button" aria-label="清除上車地點" (click)="clearPickupLocation()">×</button>
-        </span>
+          </span>
+          <input
+            #pickupAddrInput
+            name="pickupLocation"
+            type="text"
+            class="booking-route__form-sync"
+            required
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
         @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="最近上車地點">
             <p class="booking-form__recent-title">最近使用過的地址</p>
@@ -108,21 +116,20 @@
 
         <label #destinationField class="booking-route__search-field">
           <span class="booking-route__search-label">目的地</span>
-          <span class="booking-route__search-control">
-            <input
-              #dropoffAddrInput
-              name="destination"
-              type="text"
-              autocomplete="off"
-              lang="zh-Hant"
-              placeholder="請輸入或搜尋目的地"
-              aria-label="目的地"
-              (focus)="showRecentDropoffPlaces()"
-              (input)="onDestinationInput($event)"
-              required
-            />
+          <span class="booking-route__search-control booking-route__search-control--gmp">
+            <span #dropoffAutocompleteHost class="booking-route__gmp-slot"></span>
             <button type="button" aria-label="清除目的地" (click)="clearDestination()">×</button>
-        </span>
+          </span>
+          <input
+            #dropoffAddrInput
+            name="destination"
+            type="text"
+            class="booking-route__form-sync"
+            required
+            tabindex="-1"
+            autocomplete="off"
+            aria-hidden="true"
+          />
         @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="最近目的地">
             <p class="booking-form__recent-title">最近使用過的地址</p>

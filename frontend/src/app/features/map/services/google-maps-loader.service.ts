@@ -38,12 +38,13 @@ export class GoogleMapsLoaderService {
       this.optionsSet = true;
     }
 
-    await Promise.all([
-      importLibrary('maps'),
-      importLibrary('geocoding'),
-      importLibrary('routes'),
-      importLibrary('places'),
-    ]);
+    /*
+     * Keep the bootstrap minimal: failing `routes` or `marker` here would block *every* Maps
+     * consumer (booking + map). Load those libraries lazily instead:
+     * - `routes` → `MapService` when computing a driving route (`Route.computeRoutes`)
+     * - `marker` → `Map` after the base map is created (advanced markers only)
+     */
+    await Promise.all([importLibrary('maps'), importLibrary('geocoding'), importLibrary('places')]);
 
     return google;
   }
