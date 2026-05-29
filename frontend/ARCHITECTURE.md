@@ -124,8 +124,8 @@ The wireframe in [`initial-design/13-3-wireframe-phase1.jpeg`](../initial-design
 
 | Wireframe element         | Chinese label  | Route      | Slice folder        | Navigation surface          |
 |---------------------------|----------------|------------|---------------------|-----------------------------|
-| Tab 1 (default) — Map     | 路線           | `/map` (and `/` redirects here) | `features/map/`       | Bottom tab bar              |
-| Tab 2 — Booking           | 預約           | `/booking` | `features/booking/` | Bottom tab bar              |
+| Tab 1 — Map               | 路線           | `/route` (`/map` redirects here) | `features/map/`       | Bottom tab bar              |
+| Tab 2 (default landing) — Booking | 預約   | `/booking` (and `/` redirects here) | `features/booking/` | Bottom tab bar              |
 | Tab 3 — Pricing           | 收費           | `/pricing` | `features/pricing/` | Bottom tab bar + hamburger  |
 | Bottom contact strip      | 即時聯絡按鈕   | (persistent) | `features/contact-strip/` | Rendered in root `App`  |
 | Hamburger — FAQ           | 常見問題       | `/faq`     | `features/faq/`     | Hamburger menu              |
@@ -136,7 +136,7 @@ The wireframe in [`initial-design/13-3-wireframe-phase1.jpeg`](../initial-design
 
 **Rules derived from this mapping:**
 
-1. **`/` (root path) redirects to `/map`.** The wireframe's default view is the map, not a separate landing page. A dedicated `features/home/` slice is **not** needed — the prerendered `/map` page carries the `<h1>` and `LocalBusiness` Schema.org that a homepage normally would.
+1. **`/` (root path) redirects to `/booking`.** The first screen is the booking form; a dedicated `features/home/` slice is **not** needed. The map route is **`/route`** (legacy **`/map`** redirects there). SEO-critical `<h1>` / Schema.org for the business may live on booking, map, or both as the product evolves.
 2. **`pricing/` is one slice with two navigation entry points.** Both the bottom tab bar and the hamburger menu link to the same `/pricing` route. Don't duplicate the component.
 3. **The bottom tab bar and the persistent contact strip are layout chrome**, not routes. The tab bar goes in `shared/ui/bottom-nav/` (pure presentation, no state beyond "which route is active"); the contact strip stays in `features/contact-strip/` because it owns a small amount of feature logic (click tracking, anti-fraud throttling per design doc §3.5).
 4. **Bilingual mirror under `/en/...`.** Each slice listed above gets an English route sibling — implemented either with Angular i18n or by a parallel routing tree under `features/en/`, depending on which the team picks when scaffolding.

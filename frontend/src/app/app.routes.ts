@@ -1,9 +1,14 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
+  /** Landing: open the booking form first (`/booking` canonical URL stays for deep links). */
   {
     path: '',
     pathMatch: 'full',
+    redirectTo: 'booking',
+  },
+  {
+    path: 'route',
     loadChildren: () => import('./features/map/map.routes').then(m => m.mapRoutes),
   },
   {
@@ -23,12 +28,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/about/about.routes').then(m => m.aboutRoutes),
   },
 
-  // /map was removed to keep one canonical URL per screen.
-  // Incoming redirect for anyone who bookmarked the old path during testing:
-  { path: 'map', redirectTo: '', pathMatch: 'full' },
+  // /map → /route — map screen URL was `/` then briefly `/map` during iterations.
+  { path: 'map', redirectTo: 'route', pathMatch: 'full' },
 
   // English mirror (Phase 1.2 — scaffold only, implement when i18n is wired):
   // { path: 'en', loadChildren: () => import('./features/en/en.routes').then(m => m.enRoutes) },
 
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'booking' },
 ];
