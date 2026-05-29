@@ -17,7 +17,7 @@ describe('BottomNav', () => {
       imports: [BottomNav, EmptyRoute],
       providers: [
         provideRouter([
-          { path: '', component: EmptyRoute },
+          { path: 'route', component: EmptyRoute },
           { path: 'booking', component: EmptyRoute },
         ]),
       ],

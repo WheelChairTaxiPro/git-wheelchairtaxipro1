@@ -13,8 +13,7 @@ interface Tab {
   readonly route: string;
   /**
    * Match options for RouterLinkActive.
-   * - Route tab uses `paths: 'exact'` so `/booking` does NOT highlight it
-   *   (every URL starts with `/`).
+   * - Route tab uses `paths: 'exact'` on `/route` so `/booking` does NOT highlight it.
    * - Booking & Pricing tabs use `paths: 'subset'` so `/booking/confirm`
    *   still highlights Booking later.
    */
@@ -40,7 +39,7 @@ const SUBSET: IsActiveMatchOptions = {
  * Route and Booking appear here.
  */
 const TABS: readonly Tab[] = [
-  { icon: 'map',   labelZh: '路線', labelEn: 'Route',   route: '/',        matchOptions: EXACT  },
+  { icon: 'map',   labelZh: '路線', labelEn: 'Route',   route: '/route',   matchOptions: EXACT  },
   { icon: 'event', labelZh: '預約', labelEn: 'Booking', route: '/booking', matchOptions: SUBSET },
 ];
 
