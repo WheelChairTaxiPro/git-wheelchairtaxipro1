@@ -5,7 +5,7 @@ This frontend can produce **two builds** with **different `tel:` / WhatsApp** nu
 | Build | Command | Phone | `wa.me` digits |
 |-------|---------|-------|----------------|
 | **K. K. Leung** (default production) | `npm run build` or `npm run build:kkleung` | `+85296488582` | `85296488582` |
-| **James Lo** | `npm run build:jameslo` | `+85293281777` | `85293281777` |
+| **James Lo** | `npm run build:jameslo` | `+` | `` |
 
 Mechanism: **`contact.manifest.ts`** is replaced at compile time by **`production-jameslo`** via `angular.json` → **`contact.manifest.jameslo.ts`**.
 
