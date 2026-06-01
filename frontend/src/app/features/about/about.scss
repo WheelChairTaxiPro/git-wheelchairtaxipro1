@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.about-intro,
+.about-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.about-section__title {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-section__title--lead {
+  font-size: 1.15rem;
+}
+
+.about-subtitle {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-intro p,
+.about-section > p,
+.about-card p {
+  margin: 0;
+  line-height: 1.65;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-section--highlight,
+.about-section--mission {
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container, #f1f3f4);
+}
+
+.about-section--mission {
+  border-left: 4px solid var(--mat-sys-primary, #1a73e8);
+}
+
+.about-section--cta,
+.about-section--booking {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  background: var(--mat-sys-surface, #fff);
+}
+
+.about-section--booking {
+  border-left: 4px solid #d4af37;
+}
+
+.about-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-left: 4px solid var(--mat-sys-primary, #1a73e8);
+  border-radius: 12px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.about-card--compact {
+  border-left-color: color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 55%, #d4af37);
+}
+
+.about-card__title {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.6;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-list--ordered {
+  padding-left: 1.5rem;
+}
+
+.about-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  line-height: 1.6;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.about-link {
+  color: var(--mat-sys-primary, #1a73e8);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover,
+  &:focus-visible {
+    color: color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 88%, #000);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mat-sys-primary, #1a73e8);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.about-link--primary {
+  display: inline-block;
+  margin-top: 0.15rem;
+}
