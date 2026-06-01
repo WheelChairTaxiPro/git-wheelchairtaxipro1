@@ -5,9 +5,22 @@
     </h1>
   </header>
 
-  <p class="booking-pricing-notice" role="note" aria-label="收費說明">
-    收費以的士咪錶為基礎，另加服務費／預約費，視乎車型而定。
-  </p>
+  <div class="booking-pricing-banner" role="note" aria-label="收費及路線概況">
+    <p class="booking-pricing-banner__segment booking-pricing-banner__segment--fee">
+      收費以的士咪錶為基礎，另加服務費／預約費，視乎車型而定。
+    </p>
+    @if (trip.selection(); as selectedTrip) {
+      @if (selectedTrip.estimatedDistanceKm && selectedTrip.estimatedDurationText) {
+        <p class="booking-pricing-banner__segment booking-pricing-banner__segment--trip">
+          你所選擇的行程:
+          <span class="booking-pricing-banner__trip-body">
+            <span>大約距離: {{ selectedTrip.estimatedDistanceKm }} 千米</span>
+            <span>大約行車時間:{{ selectedTrip.estimatedDurationText }}</span>
+          </span>
+        </p>
+      }
+    }
+  </div>
 
   <form
     #bookingFormEl
@@ -179,33 +192,4 @@
       </label>
     </fieldset>
   </form>
-
-  <!-- Temporary: route summary anchored at page bottom until final layout placement. -->
-  @if (trip.selection(); as selectedTrip) {
-    <section class="booking-trip-summary" aria-label="已選路線">
-      <h2 class="booking-trip-summary__title">已選路線</h2>
-      <dl class="booking-trip-summary__details">
-        <div>
-          <dt>上車地點</dt>
-          <dd>{{ selectedTrip.pickup.address }}</dd>
-        </div>
-        <div>
-          <dt>目的地</dt>
-          <dd>{{ selectedTrip.dropoff.address }}</dd>
-        </div>
-        @if (selectedTrip.estimatedDistanceKm) {
-          <div>
-            <dt>預估距離</dt>
-            <dd>{{ selectedTrip.estimatedDistanceKm }} km</dd>
-          </div>
-        }
-        @if (selectedTrip.estimatedDurationText) {
-          <div>
-            <dt>預估行車時間</dt>
-            <dd>{{ selectedTrip.estimatedDurationText }}</dd>
-          </div>
-        }
-      </dl>
-    </section>
-  }
 </section>
