@@ -133,6 +133,19 @@ function clipMessageForWaUrlUtf8(raw: string): string {
   return t;
 }
 
+/** Splits map duration text so units (分鐘／小時) can use normal weight in the UI. */
+function splitTripDurationParts(text: string): { readonly num: string; readonly unit: string } {
+  const minMatch = text.match(/^(.+)\s+(分鐘)$/);
+  if (minMatch) {
+    return { num: minMatch[1], unit: ` ${minMatch[2]}` };
+  }
+  const hourMatch = text.match(/^(.+)\s+(小時)$/);
+  if (hourMatch) {
+    return { num: hourMatch[1], unit: ` ${hourMatch[2]}` };
+  }
+  return { num: text, unit: '' };
+}
+
 interface VehicleOption {
   readonly value: string;
   readonly label: string;
@@ -152,6 +165,8 @@ const VEHICLE_OPTIONS: readonly VehicleOption[] = [
   styleUrl: './booking.scss',
 })
 export class Booking implements AfterViewInit, OnDestroy {
+  protected readonly splitTripDurationParts = splitTripDurationParts;
+
   @ViewChild('pickupLocationField') private pickupLocationField?: ElementRef<HTMLElement>;
   @ViewChild('destinationField') private destinationField?: ElementRef<HTMLElement>;
   @ViewChild('pickupAutocompleteHost')

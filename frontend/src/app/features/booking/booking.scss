@@ -16,13 +16,19 @@
   box-sizing: border-box;
 }
 
-/* Fee reminder + route estimates — one row when wide; wraps to 2–3 lines on narrow viewports. */
-.booking-pricing-banner {
+/* Fee notice + trip summary — stack on narrow; one row when wide enough. */
+.booking-notices {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1rem;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+/* Fee reminder (subtle gold accent). */
+.booking-fee-notice {
   margin: 0;
+  flex: 1 1 100%;
+  min-width: 0;
   padding: 0.85rem 1rem;
   border-left: 4px solid #d4af37;
   border-radius: 0 10px 10px 0;
@@ -35,53 +41,138 @@
   box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
 }
 
-.booking-pricing-banner__segment {
-  margin: 0;
-}
-
-.booking-pricing-banner__segment--fee {
-  /* Narrow / medium: fee on its own row; metrics share the next row (or stack). */
+/* Route summary — visually distinct when pickup + dropoff are set. */
+.booking-trip-highlight {
+  display: flex;
   flex: 1 1 100%;
-  min-width: 0;
-}
-
-.booking-pricing-banner__segment--trip {
-  flex: 1 1 100%;
-  min-width: 0;
-}
-
-.booking-pricing-banner__trip-body {
-  display: inline-flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.35rem 1.25rem;
-  margin-inline-start: 0.35rem;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 35%, transparent);
+  border-left: 5px solid var(--mat-sys-primary, #1a73e8);
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 14%, var(--mat-sys-surface, #fff)) 0%,
+    color-mix(in srgb, #d4af37 8%, var(--mat-sys-surface, #fff)) 100%
+  );
+  box-shadow: 0 2px 10px rgba(26, 115, 232, 0.12);
 }
 
-.booking-pricing-banner__trip-body > span {
+.booking-trip-highlight__heading {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--mat-sys-primary, #1a73e8);
+  letter-spacing: 0.02em;
+}
+
+.booking-trip-highlight__heading::after {
+  content: '：';
+}
+
+.booking-trip-highlight__metrics {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.65rem 1rem;
+  min-width: 0;
+}
+
+.booking-trip-highlight__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.1);
   white-space: nowrap;
 }
 
-@media (min-width: 960px) {
-  .booking-pricing-banner__segment--fee,
-  .booking-pricing-banner__segment--trip {
+.booking-trip-highlight__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  letter-spacing: 0.03em;
+}
+
+.booking-trip-highlight__value {
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--mat-sys-on-surface, #202124);
+  letter-spacing: 0.01em;
+}
+
+.booking-trip-highlight__number {
+  font-weight: 800;
+}
+
+.booking-trip-highlight__unit {
+  font-weight: 500;
+}
+
+@media (min-width: 600px) {
+  .booking-trip-highlight__value {
+    font-size: 1.28rem;
+  }
+
+  /* Trip block: heading + both metrics on one line. */
+  .booking-trip-highlight {
+    flex-wrap: nowrap;
+  }
+
+  .booking-trip-highlight__metrics {
+    flex-wrap: nowrap;
+    flex: 0 1 auto;
+  }
+
+  .booking-trip-highlight__metric {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.2rem 0.35rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .booking-trip-highlight__label::after {
+    content: '：';
+  }
+}
+
+/* Very wide: fee notice and trip block share one row. */
+@media (min-width: 900px) {
+  .booking-notices {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .booking-fee-notice,
+  .booking-trip-highlight {
     flex: 1 1 auto;
   }
 }
 
-@media (max-width: 479px) {
-  .booking-pricing-banner__segment--trip {
-    display: flex;
+@media (max-width: 559px) {
+  .booking-trip-highlight {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
+    align-items: stretch;
   }
 
-  .booking-pricing-banner__trip-body {
-    margin-inline-start: 0;
+  .booking-trip-highlight__metrics {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.35rem;
+    width: 100%;
+  }
+
+  .booking-trip-highlight__metric {
+    white-space: normal;
   }
 }
 
