@@ -5,19 +5,41 @@
     </h1>
   </header>
 
-  <div class="booking-pricing-banner" role="note" aria-label="收費及路線概況">
-    <p class="booking-pricing-banner__segment booking-pricing-banner__segment--fee">
+  <div class="booking-notices">
+    <p class="booking-fee-notice" role="note" aria-label="收費說明">
       收費以的士咪錶為基礎，另加服務費／預約費，視乎車型而定。
     </p>
+
     @if (trip.selection(); as selectedTrip) {
       @if (selectedTrip.estimatedDistanceKm && selectedTrip.estimatedDurationText) {
-        <p class="booking-pricing-banner__segment booking-pricing-banner__segment--trip">
-          你所選擇的行程:
-          <span class="booking-pricing-banner__trip-body">
-            <span>大約距離: {{ selectedTrip.estimatedDistanceKm }} 千米</span>
-            <span>大約行車時間:{{ selectedTrip.estimatedDurationText }}</span>
-          </span>
-        </p>
+        <div
+          class="booking-trip-highlight"
+          role="status"
+          aria-label="你所選擇的行程概況"
+        >
+          <p class="booking-trip-highlight__heading">你所選擇的行程</p>
+          <div class="booking-trip-highlight__metrics">
+            <div class="booking-trip-highlight__metric">
+              <span class="booking-trip-highlight__label">大約距離</span>
+              <span class="booking-trip-highlight__value">
+                <span class="booking-trip-highlight__number">{{
+                  selectedTrip.estimatedDistanceKm
+                }}</span>
+                <span class="booking-trip-highlight__unit">千米</span>
+              </span>
+            </div>
+            <div class="booking-trip-highlight__metric">
+              <span class="booking-trip-highlight__label">大約行車時間</span>
+              @let durationParts = splitTripDurationParts(selectedTrip.estimatedDurationText);
+              <span class="booking-trip-highlight__value">
+                <span class="booking-trip-highlight__number">{{ durationParts.num }}</span>
+                @if (durationParts.unit) {
+                  <span class="booking-trip-highlight__unit">{{ durationParts.unit }}</span>
+                }
+              </span>
+            </div>
+          </div>
+        </div>
       }
     }
   </div>
