@@ -851,12 +851,12 @@ export class Booking implements AfterViewInit, OnDestroy {
 
     const selectedTrip = this.trip.selection();
     if (selectedTrip) {
-      lines.push('', '—— 路程估算 ——');
+      lines.push('', '—— 大約路程 ——');
       if (typeof selectedTrip.estimatedDistanceKm === 'number') {
-        lines.push(`預估距離：${selectedTrip.estimatedDistanceKm} km`);
+        lines.push(`大約距離：${selectedTrip.estimatedDistanceKm} km`);
       }
       if (selectedTrip.estimatedDurationText) {
-        lines.push(`預估行車時間：${selectedTrip.estimatedDurationText}`);
+        lines.push(`大約行車時間：${selectedTrip.estimatedDurationText}`);
       }
     }
 
