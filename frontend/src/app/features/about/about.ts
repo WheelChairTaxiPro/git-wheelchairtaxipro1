@@ -24,4 +24,5 @@ export class About {
   protected readonly whatsappUrl = `https://wa.me/${DEFAULT_CONTACT_CHANNELS.whatsapp}?text=${encodeURIComponent(DEFAULT_CONTACT_CHANNELS.whatsappPrefill)}`;
   /** Booking enquiry email from initial-design/16-WheelchairTaxiPro_About_Us_Final.md */
   protected readonly bookingEmail = 'dannyleungkkl@gmail.com';
+  protected readonly facebookUrl = 'https://www.facebook.com/wheelchairtaxipro/';
 }
