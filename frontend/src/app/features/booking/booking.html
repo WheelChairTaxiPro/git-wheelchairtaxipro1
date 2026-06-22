@@ -7,69 +7,58 @@
 
   <div class="booking-notices">
     <p class="booking-fee-notice" role="note" aria-label="收費說明">
-      收費以的士咪錶為基礎，另加服務費／預約費，視乎車型而定。
+      收費以的士咪錶為基礎，另加預約服務費，視乎車型而定 +$100/$120/+$150。
     </p>
 
     @if (trip.selection(); as selectedTrip) {
-      @if (selectedTrip.estimatedDistanceKm && selectedTrip.estimatedDurationText) {
-        <div
-          class="booking-trip-highlight"
-          role="status"
-          aria-label="你所選擇的行程概況"
-        >
-          <p class="booking-trip-highlight__heading">你所選擇的行程</p>
-          <div class="booking-trip-highlight__metrics">
-            <div class="booking-trip-highlight__metric">
-              <span class="booking-trip-highlight__label">大約距離</span>
-              <span class="booking-trip-highlight__value">
-                <span class="booking-trip-highlight__number">{{
-                  selectedTrip.estimatedDistanceKm
-                }}</span>
-                <span class="booking-trip-highlight__unit">千米</span>
-              </span>
-            </div>
-            <div class="booking-trip-highlight__metric">
-              <span class="booking-trip-highlight__label">大約行車時間</span>
-              @let durationParts = splitTripDurationParts(selectedTrip.estimatedDurationText);
-              <span class="booking-trip-highlight__value">
-                <span class="booking-trip-highlight__number">{{ durationParts.num }}</span>
-                @if (durationParts.unit) {
-                  <span class="booking-trip-highlight__unit">{{ durationParts.unit }}</span>
-                }
-              </span>
-            </div>
-          </div>
+    @if (selectedTrip.estimatedDistanceKm && selectedTrip.estimatedDurationText) {
+    <div class="booking-trip-highlight" role="status" aria-label="你所選擇的行程概況">
+      <p class="booking-trip-highlight__heading">你所選擇的行程</p>
+      <div class="booking-trip-highlight__metrics">
+        <div class="booking-trip-highlight__metric">
+          <span class="booking-trip-highlight__label">大約距離</span>
+          <span class="booking-trip-highlight__value">
+            <span class="booking-trip-highlight__number">{{
+              selectedTrip.estimatedDistanceKm
+              }}</span>
+            <span class="booking-trip-highlight__unit">千米</span>
+          </span>
         </div>
-      }
+        <div class="booking-trip-highlight__metric">
+          <span class="booking-trip-highlight__label">大約行車時間</span>
+          @let durationParts = splitTripDurationParts(selectedTrip.estimatedDurationText);
+          <span class="booking-trip-highlight__value">
+            <span class="booking-trip-highlight__number">{{ durationParts.num }}</span>
+            @if (durationParts.unit) {
+            <span class="booking-trip-highlight__unit">{{ durationParts.unit }}</span>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+    }
     }
   </div>
 
-  <form
-    #bookingFormEl
-    class="booking-form"
-    lang="zh-Hant"
-    novalidate
-    aria-label="輪椅的士預約表格"
-    (submit)="onSubmit($event)"
-  >
+  <form #bookingFormEl class="booking-form" lang="zh-Hant" novalidate aria-label="輪椅的士預約表格" (submit)="onSubmit($event)">
     <div class="booking-form__head">
       <h2 class="booking-form__title">填妥以下資料 之後 請按 👉</h2>
       <button class="booking-form__submit" type="submit">提交預約</button>
     </div>
 
     @if (submitted()) {
-      <div class="booking-form__status" role="status">
-        <p>
-          已為您準備好 WhatsApp 訊息，並會嘗試在新分頁開啟。您仍可留在本頁；預約內容已保留在表格中以便修改後再次送出。
-        </p>
-        @if (whatsappHandoffUrl(); as waLink) {
-          <p>
-            若未自動出現 WhatsApp，
-            <a [href]="waLink" target="_blank" rel="noopener noreferrer">請點此在新分頁開啟</a>
-            ，然後按下「傳送」發給我們確認。
-          </p>
-        }
-      </div>
+    <div class="booking-form__status" role="status">
+      <p>
+        已為您準備好 WhatsApp 訊息，並會嘗試在新分頁開啟。您仍可留在本頁；預約內容已保留在表格中以便修改後再次送出。
+      </p>
+      @if (whatsappHandoffUrl(); as waLink) {
+      <p>
+        若未自動出現 WhatsApp，
+        <a [href]="waLink" target="_blank" rel="noopener noreferrer">請點此在新分頁開啟</a>
+        ，然後按下「傳送」發給我們確認。
+      </p>
+      }
+    </div>
     }
 
     <fieldset class="booking-form__section">
@@ -79,34 +68,22 @@
         <div class="booking-form__field booking-form__field--standard booking-form__field--pickup-schedule">
           <span>📅 預約日期及時間</span>
           <div class="booking-form__pickup-schedule">
-            <button
-              type="button"
-              class="booking-form__pickup-schedule-trigger"
-              (click)="openPickupScheduleDialog()"
+            <button type="button" class="booking-form__pickup-schedule-trigger" (click)="openPickupScheduleDialog()"
               [class.booking-form__pickup-schedule-trigger--invalid]="pickupScheduleInvalid()"
-              [attr.aria-invalid]="pickupScheduleInvalid() ? 'true' : null"
-              lang="zh-Hant"
-            >
+              [attr.aria-invalid]="pickupScheduleInvalid() ? 'true' : null" lang="zh-Hant">
               {{ pickupScheduleDisplayLabel() }}
             </button>
             <input #pickupDateTimeInput type="hidden" name="pickupDateTime" autocomplete="off" />
           </div>
           @if (pickupScheduleInvalid()) {
-            <p class="booking-form__field-error" role="alert" lang="zh-Hant">請選擇預約日期及時間</p>
+          <p class="booking-form__field-error" role="alert" lang="zh-Hant">請選擇預約日期及時間</p>
           }
         </div>
 
         <label class="booking-form__field booking-form__field--standard">
           <span>👨‍👩‍👧 總人數（包括輪椅乘客）</span>
-          <input
-            name="passengerCount"
-            type="number"
-            inputmode="numeric"
-            min="1"
-            step="1"
-            required
-            aria-label="乘客總人數，包括輪椅乘客"
-          />
+          <input name="passengerCount" type="number" inputmode="numeric" min="1" step="1" required
+            aria-label="乘客總人數，包括輪椅乘客" />
         </label>
 
         <label class="booking-form__field booking-form__field--standard">
@@ -122,31 +99,24 @@
             <span #pickupAutocompleteHost class="booking-route__gmp-slot"></span>
             <button type="button" aria-label="清除上車地點" (click)="clearPickupLocation()">×</button>
           </span>
-          <input
-            #pickupAddrInput
-            name="pickupLocation"
-            type="text"
-            class="booking-route__form-sync"
-            required
-            tabindex="-1"
-            autocomplete="off"
-            aria-hidden="true"
-          />
-        @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
+          <input #pickupAddrInput name="pickupLocation" type="text" class="booking-route__form-sync" required
+            tabindex="-1" autocomplete="off" aria-hidden="true" />
+          @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="最近上車地點">
             <p class="booking-form__recent-title">最近使用過的地址</p>
             @for (place of recentPickupPlaces(); track place.address) {
-              <div class="booking-form__recent-row" role="option">
-                <button type="button" class="booking-form__recent-address" (click)="selectRecentPickup(place)">
-                  {{ place.address }}
-                </button>
-                <button type="button" class="booking-form__recent-remove" aria-label="移除此筆最近上車地點" (click)="removeRecentPickup(place)">
-                  ×
-                </button>
-              </div>
+            <div class="booking-form__recent-row" role="option">
+              <button type="button" class="booking-form__recent-address" (click)="selectRecentPickup(place)">
+                {{ place.address }}
+              </button>
+              <button type="button" class="booking-form__recent-remove" aria-label="移除此筆最近上車地點"
+                (click)="removeRecentPickup(place)">
+                ×
+              </button>
+            </div>
             }
           </div>
-        }
+          }
         </label>
 
         <label #destinationField class="booking-route__search-field">
@@ -155,31 +125,24 @@
             <span #dropoffAutocompleteHost class="booking-route__gmp-slot"></span>
             <button type="button" aria-label="清除目的地" (click)="clearDestination()">×</button>
           </span>
-          <input
-            #dropoffAddrInput
-            name="destination"
-            type="text"
-            class="booking-route__form-sync"
-            required
-            tabindex="-1"
-            autocomplete="off"
-            aria-hidden="true"
-          />
-        @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
+          <input #dropoffAddrInput name="destination" type="text" class="booking-route__form-sync" required
+            tabindex="-1" autocomplete="off" aria-hidden="true" />
+          @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
           <div class="booking-form__recent" role="listbox" aria-label="最近目的地">
             <p class="booking-form__recent-title">最近使用過的地址</p>
             @for (place of recentDropoffPlaces(); track place.address) {
-              <div class="booking-form__recent-row" role="option">
-                <button type="button" class="booking-form__recent-address" (click)="selectRecentDropoff(place)">
-                  {{ place.address }}
-                </button>
-                <button type="button" class="booking-form__recent-remove" aria-label="移除此筆最近目的地" (click)="removeRecentDropoff(place)">
-                  ×
-                </button>
-              </div>
+            <div class="booking-form__recent-row" role="option">
+              <button type="button" class="booking-form__recent-address" (click)="selectRecentDropoff(place)">
+                {{ place.address }}
+              </button>
+              <button type="button" class="booking-form__recent-remove" aria-label="移除此筆最近目的地"
+                (click)="removeRecentDropoff(place)">
+                ×
+              </button>
+            </div>
             }
           </div>
-        }
+          }
         </label>
       </div>
     </fieldset>
@@ -208,7 +171,7 @@
         <select name="vehicleType" required aria-label="請選擇車型">
           <option value="" disabled selected hidden>請選擇車型</option>
           @for (vehicle of vehicleOptions; track vehicle.value) {
-            <option [value]="vehicle.value">{{ vehicle.label }}</option>
+          <option [value]="vehicle.value">{{ vehicle.label }}</option>
           }
         </select>
       </label>
