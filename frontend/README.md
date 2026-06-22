@@ -1,16 +1,123 @@
 # Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.7.
+Angular 21 PWA for **Wheelchair Taxi Pro** (booking, map, pricing, FAQ, about). Generated with [Angular CLI](https://github.com/angular/angular-cli) 21.2.7.
 
-## Development server
+## Prerequisites
 
-To start a local development server, run:
+- **Node.js** 20.19+ or **22 LTS** — [nodejs.org](https://nodejs.org/)
+- **npm** (included with Node)
+
+```bash
+node --version   # v20.19+ or v22.x
+```
+
+All commands below assume your shell is in the **`frontend/`** directory:
+
+```bash
+cd frontend
+```
+
+## Getting started (clean → install → run)
+
+### 1. Clean (optional — fresh start)
+
+Remove dependencies, build output, and Angular cache:
+
+```bash
+# macOS / Linux / Git Bash
+rm -rf node_modules dist .angular
+```
+
+```powershell
+# Windows PowerShell
+Remove-Item -Recurse -Force node_modules, dist, .angular -ErrorAction SilentlyContinue
+```
+
+To clear only build artifacts (keep `node_modules`):
+
+```bash
+rm -rf dist .angular
+```
+
+### 2. Google Maps API key
+
+Map and booking place search need a key at build/start time.
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `frontend/.env.local` (gitignored — never commit):
+
+```text
+GOOGLE_MAPS_API_KEY=your_key_here
+```
+
+`npm start` and `npm run build` run `scripts/write-google-maps-config.mjs`, which reads `.env.local` and generates `src/app/core/config/google-maps.generated.ts`.
+
+### 3. Install dependencies
+
+**Reproducible install** (recommended after a clean, or to match CI / `package-lock.json` exactly):
+
+```bash
+npm ci
+```
+
+`npm ci` removes `node_modules` and installs from the lockfile only — faster and stricter in automation. Cloudflare Pages builds should use `npm ci && npm run build` (see deploy runbook).
+
+**Day-to-day dev** (when adding or upgrading packages and updating the lockfile):
+
+```bash
+npm install
+```
+
+Commit `package-lock.json` after dependency changes so `npm ci` stays in sync.
+
+### 4. Run locally (development)
+
+```bash
+npm start
+```
+
+This runs `prestart` (Maps config) then `ng serve`. Open **http://localhost:4200/** — the app reloads when you save source files.
+
+Equivalent:
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Quick copy-paste (clean install + dev server)
+
+```bash
+cd frontend
+rm -rf node_modules dist .angular    # omit if not doing a full reset
+npm ci
+npm start
+```
+
+(Ensure `.env.local` exists with `GOOGLE_MAPS_API_KEY` before `npm start`.)
+
+## Building
+
+| Command | Purpose |
+|---------|---------|
+| `npm run build` | Default production build |
+| `npm run build:kkleung` | Production + **K.K. Leung** contact manifest (usual deploy) |
+| `npm run build:jameslo` | Production + **James Lo** contact manifest |
+| `npm run watch` | Development build with watch mode |
+
+`prebuild` runs the Google Maps config script before each build.
+
+```bash
+npm run build:kkleung
+```
+
+Output:
+
+```text
+dist/frontend/browser/
+```
 
 ## Code scaffolding
 
@@ -26,16 +133,6 @@ For a complete list of available schematics (such as `components`, `directives`,
 ng generate --help
 ```
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
 ## Deploying to Cloudflare Pages
 
 Production frontend hosting is **Cloudflare Pages** (project name: `wheelchairtaxipro`, public URL: <https://wheelchairtaxipro.pages.dev>, target custom domain: `wheelchairtaxipro.com`). Full background, monorepo build config, per-PR previews, custom domain setup, and rollback steps are documented in the sibling runbook: [`docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md`](../docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md).
@@ -45,8 +142,8 @@ Production frontend hosting is **Cloudflare Pages** (project name: `wheelchairta
 For a fast deploy without Git integration, use Cloudflare's Wrangler CLI. Build first, then push the static output straight to Pages:
 
 ```bash
-# Optional: frontend/.env.local with GOOGLE_MAPS_API_KEY=... (copy from .env.example)
-npm run build
+# Requires frontend/.env.local with GOOGLE_MAPS_API_KEY=... (see Getting started)
+npm run build:kkleung
 npx wrangler pages deploy dist/frontend/browser --project-name=wheelchairtaxipro --branch=main --commit-dirty=true
 ```
 
@@ -83,23 +180,14 @@ Angular's service worker caches the previous app shell aggressively. After deplo
 - **Incognito window** — opens without the cached service worker, so you always hit the new deploy.
 - **Manually clear in a normal window** — DevTools → **Application** → **Service Workers** → **Unregister**, then **Storage** → **Clear site data**, then reload.
 
-## Running unit tests
+## Running tests
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+| Command | Purpose |
+|---------|---------|
+| `npm test` | Unit tests ([Vitest](https://vitest.dev/)) |
+| `npm run e2e` | End-to-end tests ([Playwright](https://playwright.dev/)) |
+| `npm run e2e:ui` | Playwright UI mode |
+| `npm run e2e:report` | Open last Playwright HTML report |
 
 ## Additional Resources
 
