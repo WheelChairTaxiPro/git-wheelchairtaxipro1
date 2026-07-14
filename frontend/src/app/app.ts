@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterOutlet } from '@angular/router';
 
+import { SeoService } from './core/services/seo.service';
 import { ContactStrip } from './features/contact-strip/contact-strip';
 import { DrawerService } from './shared/services/drawer.service';
 import { BottomNav } from './shared/ui/bottom-nav/bottom-nav';
@@ -23,6 +24,12 @@ import { TopBanner } from './shared/ui/top-banner/top-banner';
 })
 export class App {
   protected readonly drawerService = inject(DrawerService);
+  private readonly seo = inject(SeoService);
+
+  constructor() {
+    this.seo.listenForRouteChanges();
+    this.seo.applyFromActivatedRoute();
+  }
 
   /** Close when the user taps anywhere inside <main> while the drawer is open (D6c). */
   protected onMainWrapClick(): void {

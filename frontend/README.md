@@ -135,11 +135,46 @@ ng generate --help
 
 ## Deploying to Cloudflare Pages
 
-Production frontend hosting is **Cloudflare Pages** (project name: `wheelchairtaxipro`, public URL: <https://wheelchairtaxipro.pages.dev>, target custom domain: `wheelchairtaxipro.com`). Full background, monorepo build config, per-PR previews, custom domain setup, and rollback steps are documented in the sibling runbook: [`docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md`](../docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md).
+Production hosting is **Cloudflare Pages**.
 
-### Deploy from the CLI (Wrangler)
+| Piece | Value |
+|-------|--------|
+| Pages project name | `wheelchairtaxipro` |
+| Default Pages URL | <https://wheelchairtaxipro.pages.dev> |
+| Custom domain (canonical) | <https://wheelchairtaxipro.com> |
 
-For a fast deploy without Git integration, use Cloudflare's Wrangler CLI. Build first, then push the static output straight to Pages:
+**How the domain is linked:** you do **not** put `wheelchairtaxipro.com` in the Wrangler command. Deploy to the Pages project (`--project-name=wheelchairtaxipro`) **on the production branch** (`--branch=main`). Any **Custom domains** already attached to that project in the Cloudflare dashboard (apex / `www`) then serve the new production deployment.
+
+```text
+npm run build:kkleung
+        ↓
+npx wrangler pages deploy … --project-name=wheelchairtaxipro --branch=main --commit-dirty=true
+        ↓
+Pages project: wheelchairtaxipro  (production branch = main)
+        ↓
+Custom domains on that project  →  https://wheelchairtaxipro.com
+                                 →  https://wheelchairtaxipro.pages.dev
+```
+
+Confirm the link in Cloudflare → **Workers & Pages** → **wheelchairtaxipro** → **Custom domains** (status **Active**).
+
+First-time domain attach, Maps referrers, QR/UTM, and go-live checklist: [`initial-design/20-first-go-live.md`](../initial-design/20-first-go-live.md).  
+Full Pages / monorepo / Git-connected builds: [`docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md`](../docs/LearningNotes/deploying-an-angular-pwa-to-cloudflare-pages.md).  
+SEO after deploy (Search Console, sitemap): [`initial-design/19-SEO-GEO-AEO-AI-search-optimization.md`](../initial-design/19-SEO-GEO-AEO-AI-search-optimization.md).
+
+### Deploy from the CLI (Wrangler) — usual path
+
+For a fast production deploy without waiting on Git CI:
+
+**1. First time only** — log in to Cloudflare:
+
+```bash
+npx wrangler login
+```
+
+Use the account that owns the `wheelchairtaxipro` Pages project. The token is cached locally.
+
+**2. Build + deploy** (from `frontend/`):
 
 ```bash
 # Requires frontend/.env.local with GOOGLE_MAPS_API_KEY=... (see Getting started)
@@ -147,17 +182,32 @@ npm run build:kkleung
 npx wrangler pages deploy dist/frontend/browser --project-name=wheelchairtaxipro --branch=main --commit-dirty=true
 ```
 
-Wrangler prints a per-deploy preview URL and updates the production alias (`https://wheelchairtaxipro.pages.dev`) automatically.
+**Required flags (do not omit):**
 
-**Stable branch-style URL** (e.g. `https://kkleung.wheelchairtaxipro.pages.dev`): use a Git branch named `kkleung`, or pass `--branch=kkleung` on the deploy command instead of `main`. See [`docs/LearningNotes/cloudflare-pages-multi-operator.md`](../docs/LearningNotes/cloudflare-pages-multi-operator.md) §1 for production vs preview (SEO) behaviour.
+| Flag | Why |
+|------|-----|
+| `--branch=main` | Updates **production** (and thus `wheelchairtaxipro.com`). Without it, Wrangler may upload successfully but only create a **preview** deploy — the live site stays on the old build. |
+| `--commit-dirty=true` | Silences the warning when the git working tree has uncommitted changes; needed for a clean CLI deploy from a dirty tree. |
 
-**First time only** — authenticate against Cloudflare once:
+`✨ Success! Uploaded N files` alone does **not** prove production updated. Always smoke-check the custom domain (step 3).
 
-```bash
-npx wrangler login
-```
+Wrangler also prints a per-deploy preview URL. After a correct `--branch=main` deploy you should see the new build on:
 
-This opens a browser window for OAuth. Log in with the Cloudflare account that owns the `wheelchairtaxipro` Pages project and click **Allow**. The token is cached locally, so subsequent deploys do not prompt again.
+- Production alias: `https://wheelchairtaxipro.pages.dev`
+- Custom domain: `https://wheelchairtaxipro.com` (when attached and Active)
+
+**3. Smoke-check after deploy**
+
+Prefer an **incognito** window (avoids a stale PWA service worker):
+
+- https://wheelchairtaxipro.com/booking — Call / WhatsApp / map
+- https://wheelchairtaxipro.com/robots.txt — must start with `User-agent:` (plain text, **not** an HTML “Redirecting” page)
+- https://wheelchairtaxipro.com/sitemap.xml — XML `<urlset>`, not HTML
+- View **page source** on `/booking` or `/faq` — unique `<title>` (e.g. `輪椅的士預約 | 輪的 · 香港`), meta description, canonical (not the empty SPA shell / old short title)
+
+If upload succeeded but the live title is still old, rebuild and redeploy with **both** flags above.
+
+**Stable branch-style URL** (e.g. `https://kkleung.wheelchairtaxipro.pages.dev`): use a Git branch named `kkleung`, or pass `--branch=kkleung` instead of `main`. Preview branches are `noindex`. See [`docs/LearningNotes/cloudflare-pages-multi-operator.md`](../docs/LearningNotes/cloudflare-pages-multi-operator.md) §1.
 
 ### Build output layout
 
