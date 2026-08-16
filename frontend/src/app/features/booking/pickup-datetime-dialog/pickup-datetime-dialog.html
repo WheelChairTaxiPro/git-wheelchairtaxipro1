@@ -1,0 +1,93 @@
+<h2 mat-dialog-title class="pickup-dt-dialog__title" lang="zh-Hant">預約日期及時間</h2>
+
+<mat-dialog-content class="pickup-dt-dialog__content">
+  <p class="pickup-dt-dialog__hint" lang="zh-Hant">選好後請按「設定」關閉並套用。</p>
+
+  <div class="pickup-dt-dialog__fields" role="group" aria-label="預約日期及時間">
+    <label class="pickup-dt-dialog__field">
+      <span class="pickup-dt-dialog__label" lang="zh-Hant">日期</span>
+      <input
+        class="pickup-dt-dialog__input"
+        type="date"
+        lang="zh-Hant"
+        [value]="datePart()"
+        (input)="setDate($event)"
+      />
+    </label>
+    <div class="pickup-dt-dialog__field pickup-dt-dialog__field--time">
+      <span class="pickup-dt-dialog__label" lang="zh-Hant">時間</span>
+      <input
+        type="text"
+        class="pickup-dt-dialog__input pickup-dt-dialog__input--mirror"
+        readonly
+        tabindex="-1"
+        lang="zh-Hant"
+        [value]="compactTimeZh()"
+        aria-label="目前已選時間（與下方選單同步）"
+      />
+      <div class="pickup-dt-dialog__time-row" role="group" aria-label="時間（12 小時制）">
+        <select
+          name="pickupHr12"
+          class="pickup-dt-dialog__select"
+          [ngModel]="timeHour12()"
+          (ngModelChange)="onHourModelChange($event)"
+          aria-label="小時"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          @for (h of hour12Options; track h) {
+            <option [ngValue]="h">{{ h }}</option>
+          }
+        </select>
+        <span class="pickup-dt-dialog__time-colon" aria-hidden="true">:</span>
+        <select
+          name="pickupMin"
+          class="pickup-dt-dialog__select pickup-dt-dialog__select--minute"
+          [ngModel]="timeMinute()"
+          (ngModelChange)="onMinuteModelChange($event)"
+          aria-label="分鐘"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          @for (m of minuteOptions; track m) {
+            <option [ngValue]="m">{{ m < 10 ? '0' + m : m }}</option>
+          }
+        </select>
+        <div class="pickup-dt-dialog__ampm" role="group" aria-label="上午或下午">
+          <button
+            type="button"
+            class="pickup-dt-dialog__ampm-btn"
+            [class.pickup-dt-dialog__ampm-btn--active]="!timeIsPm()"
+            [attr.aria-pressed]="!timeIsPm()"
+            (click)="setAmPm(false)"
+            lang="zh-Hant"
+          >
+            上午
+          </button>
+          <button
+            type="button"
+            class="pickup-dt-dialog__ampm-btn"
+            [class.pickup-dt-dialog__ampm-btn--active]="timeIsPm()"
+            [attr.aria-pressed]="timeIsPm()"
+            (click)="setAmPm(true)"
+            lang="zh-Hant"
+          >
+            下午
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (showSetError()) {
+    <p class="pickup-dt-dialog__error" role="alert" lang="zh-Hant">請同時選擇日期與時間。</p>
+  }
+
+  <div class="pickup-dt-dialog__quick">
+    <button type="button" mat-stroked-button (click)="onClear()" lang="zh-Hant">清除</button>
+    <button type="button" mat-stroked-button (click)="onToday()" lang="zh-Hant">今天</button>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="pickup-dt-dialog__actions" align="end">
+  <button type="button" mat-button (click)="onCancel()" lang="zh-Hant">取消</button>
+  <button type="button" mat-flat-button color="primary" (click)="onSet()" lang="zh-Hant">設定</button>
+</mat-dialog-actions>

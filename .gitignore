@@ -19,6 +19,7 @@ desktop.ini
 .env
 .env.local
 .env.*.local
+frontend/src/app/core/config/google-maps.generated.ts
 *.pem
 *.key
 *.p12
@@ -29,6 +30,9 @@ secrets/
 # e.g. setup-notes.local.md, scratchpad.local.txt, dev-urls.local.json
 *.local.*
 .local/
+
+# ─── Generated config containing local secrets ─────────────────────────
+frontend/src/app/core/config/google-maps.generated.ts
 
 # ─── Node / Angular (frontend/) ────────────────────────────────────────
 node_modules/

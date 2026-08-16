@@ -1,0 +1,134 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+html {
+  height: 100%;
+  overflow: hidden;
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+/* You can add global styles to this file, and also import other style files */
+
+/* ==========================================================================
+   Shared feature-page layout primitives.
+   Every feature slice (map/booking/pricing/faq/about) uses `.page` as its
+   root element and the BEM children below for heading + placeholder body.
+   Real content in later slices replaces only the <p class="page__placeholder">
+   line; the heading pattern stays.
+   ========================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+.page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.page__title-zh {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.page__title-en {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  letter-spacing: 0.01em;
+}
+
+.page__subtitle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.page__subtitle-zh {
+  font-size: 1rem;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.page__subtitle-en {
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+.page__placeholder {
+  padding: 1rem 1.25rem;
+  background: var(--mat-sys-surface-container, #f1f3f4);
+  border-left: 3px solid var(--mat-sys-primary, #1a73e8);
+  border-radius: 0 4px 4px 0;
+  font-style: italic;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.page__placeholder-zh { font-size: 1rem; }
+.page__placeholder-en { font-size: 0.9rem; }
+
+.pac-container {
+  z-index: 2000;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(60, 64, 67, 0.24);
+  font-family: inherit;
+}
+
+@media (min-width: 600px) {
+  .page {
+    padding: 2rem 2rem;
+  }
+  .page__title-zh { font-size: 2rem; }
+  .page__title-en { font-size: 1.1rem; }
+}

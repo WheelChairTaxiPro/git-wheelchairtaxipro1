@@ -1,0 +1,386 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /** Match `.booking-route__search-control` with booking page place fields */
+  --booking-control-height: 48px;
+}
+
+.page.page--map {
+  max-width: none;
+  /* Full-bleed: no horizontal padding so the map spans the entire viewport width. */
+  padding: 0;
+  /* Reset the global `.page { margin: 0 auto }`, which otherwise absorbs free
+     space in the flex shell and collapses the page to its content width. */
+  margin: 0;
+  width: 100%;
+  /* Stretch to fill the shell's main area. */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.map-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  /* Small horizontal padding so the inputs / summary row aren't flush to the edge.
+     The map canvas breaks out of this via a negative margin below. */
+  padding: 0.25rem 1rem 0;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+@media (min-width: 600px) {
+  .map-page {
+    padding: 0.25rem 1.5rem 0;
+  }
+}
+
+.map-page__summary-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.map-page__search {
+  display: grid;
+  /* Narrow: one field per row (same 840px breakpoint as booking `.booking-route__search`). */
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.map-page__search-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.map-page__search-label {
+  padding-inline: 0.2rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+@media (min-width: 720px) {
+  .map-page__search-label {
+    padding-inline: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .map-page__search {
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 840px) {
+  .map-page__search {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.map-page__search-control {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--booking-control-height);
+  padding: 0 0.3rem 0 0.65rem;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 999px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 2px 10px rgba(60, 64, 67, 0.18);
+
+  &::before {
+    content: '⌕';
+    margin-right: 0.35rem;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  input {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--mat-sys-on-surface, #202124);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+
+  button {
+    flex: 0 0 auto;
+    width: calc(var(--booking-control-height) - 14px);
+    height: calc(var(--booking-control-height) - 14px);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--mat-sys-surface-container, #f1f3f4);
+      outline: none;
+    }
+  }
+
+  &:focus-within {
+    border-color: var(--mat-sys-primary, #1a73e8);
+    box-shadow: 0 2px 10px rgba(60, 64, 67, 0.18),
+      0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 18%, transparent);
+  }
+}
+
+.map-page__gmp-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+:host ::ng-deep .map-page__gmp-slot gmp-place-autocomplete {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.map-page__recent {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 14px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 6px 18px rgba(60, 64, 67, 0.24);
+}
+
+.map-page__recent-row {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+}
+
+.map-page__recent-address,
+.map-page__recent-remove {
+  border: 0;
+  background: transparent;
+  color: var(--mat-sys-on-surface, #202124);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container, #f1f3f4);
+    outline: none;
+  }
+}
+
+.map-page__recent-address {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.map-page__recent-remove {
+  flex: 0 0 auto;
+  width: 44px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.map-page__recent-title {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.map-page__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container, #f1f3f4);
+}
+
+.map-page__prompt,
+.map-page__loading,
+.map-page__fare-note,
+.map-page__error {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.map-page__prompt,
+.map-page__error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.map-page__prompt {
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.map-page__loading {
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+}
+
+.map-page__error {
+  color: #b3261e;
+}
+
+.map-page__summary-line {
+  margin: 0;
+  font-weight: 700;
+  color: var(--mat-sys-on-surface, #202124);
+  line-height: 1.45;
+}
+
+.map-page__fare-note {
+  padding: 0.75rem 0.85rem;
+  border-left: 4px solid #d4af37;
+  border-radius: 0 8px 8px 0;
+  background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.map-page__canvas {
+  /* Fill remaining vertical space; the safety min-height keeps the map visible if flex is 0. */
+  flex: 1 1 auto;
+  min-height: 240px;
+  /* Break out of the .map-page horizontal padding so the map spans the full viewport width. */
+  margin-inline: -1rem;
+  border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  overflow: hidden;
+  background: #e5e3df;
+}
+
+@media (min-width: 600px) {
+  .map-page__canvas {
+    margin-inline: -1.5rem;
+  }
+}
+
+.map-page__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
+.map-page__primary,
+.map-page__secondary {
+  min-height: 48px;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.map-page__primary {
+  border: 0;
+  color: var(--mat-sys-on-primary, #fff);
+  background: var(--mat-sys-primary, #1a73e8);
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 88%, #000);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+.map-page__secondary {
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface, #202124);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container, #f1f3f4);
+  }
+}
+
+.map-page__primary:focus-visible,
+.map-page__secondary:focus-visible {
+  outline: 3px solid var(--mat-sys-primary-container, #e8f0fe);
+  outline-offset: 2px;
+}
+
+@media (min-width: 720px) {
+  .map-page__search-control {
+    padding: 0 0.4rem 0 1rem;
+
+    &::before {
+      margin-right: 0.6rem;
+      font-size: 1.4rem;
+    }
+
+    input {
+      font-size: 1rem;
+    }
+  }
+
+  :host ::ng-deep .map-page__gmp-slot gmp-place-autocomplete {
+    font-size: 1rem;
+  }
+
+  .map-page__summary-row {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .map-page__summary-row .map-page__panel {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .map-page__summary-row .map-page__actions {
+    flex: 0 0 auto;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .map-page__primary,
+  .map-page__secondary {
+    flex: 1 1 0;
+  }
+}

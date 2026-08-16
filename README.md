@@ -18,6 +18,7 @@ Rider-facing website and booking API designed to compete with established wheelc
 - [Phase 1 (MVP) Scope](#phase-1-mvp-scope)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
+- [Repository Hygiene](#repository-hygiene)
 - [Design Documents](#design-documents)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
@@ -97,15 +98,15 @@ frontend/
         ├── core/              # Singletons: HTTP interceptors, guards, config, analytics
         ├── shared/            # Reusable UI components, pipes, cross-feature models
         └── features/          # Vertical slices — each lazy-loaded via *.routes.ts
-            ├── map/           # Tab 1 (default): 路線 — pickup/drop-off/route/price preview
-            ├── booking/       # Tab 2: 預約 — From / To / date / phone / email → submit
+            ├── map/           # Bottom tab: 路線 — pickup/drop-off/route/price preview (`/route`)
+            ├── booking/       # Bottom tab: 預約 — From / To / date / phone / email → submit (site opens here: `/`, `/booking`)
             ├── pricing/       # Tab 3: 收費 — fare schedule, tunnel fees, surcharges
             ├── contact-strip/ # Persistent bottom Phone / WhatsApp / WeChat bar
             ├── faq/           # Hamburger menu: 常見問題 (GEO/AEO-friendly)
             └── about/         # Hamburger menu: 關於我們
 ```
 
-Slices derive directly from the Phase 1 wireframe ([`initial-design/13-3-wireframe-phase1.jpeg`](initial-design/13-3-wireframe-phase1.jpeg)) — three bottom-nav tabs (**map · booking · pricing**), persistent contact strip, hamburger menu (**faq · about**). `/` redirects to `/map` (the default tab), so no separate `home/` slice is needed. Full wireframe → slice mapping table in [`frontend/ARCHITECTURE.md §2a`](frontend/ARCHITECTURE.md).
+Slices derive directly from the Phase 1 wireframe ([`initial-design/13-3-wireframe-phase1.jpeg`](initial-design/13-3-wireframe-phase1.jpeg)) — three bottom-nav tabs (**map · booking · pricing**), persistent contact strip, hamburger menu (**faq · about**). **`/` redirects to `/booking`** (first screen is the booking form); the map lives at **`/route`**, with **`/map` redirecting there**. Full wireframe → slice mapping table in [`frontend/ARCHITECTURE.md §2a`](frontend/ARCHITECTURE.md).
 
 ### Backend (planned) — vertical slices
 
@@ -282,6 +283,14 @@ cd frontend
 npx playwright install --with-deps    # first time only
 npx playwright test
 ```
+
+---
+
+## Repository Hygiene
+
+Keep repo-wide ignore rules in the root `.gitignore`. This is the central place for build outputs, dependency folders, local-only notes, generated config, and secret-bearing files.
+
+Use narrow ignore rules for generated files. For example, ignore `frontend/src/app/core/config/google-maps.generated.ts` because it is created from `GOOGLE_MAPS_API_KEY` during frontend build/start and may contain a real API key. Do not ignore the whole `frontend/src/app/core/` folder, because it is a normal Angular source folder and may later contain committed app code.
 
 ---
 

@@ -1,0 +1,111 @@
+:host {
+  display: block;
+}
+
+.top-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  padding: 0 0.25rem;
+  background: var(--mat-sys-surface, #fff);
+  border-bottom: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+}
+
+.top-banner__logo {
+  display: block;
+  flex-shrink: 0;
+  width: auto;
+  height: 38px;
+  max-height: calc(52px - 4px);
+  max-width: min(168px, 42vw);
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 600px) {
+  .top-banner__logo {
+    height: 42px;
+    max-width: min(192px, 36vw);
+  }
+}
+
+.top-banner__title {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--mat-sys-on-surface, #202124);
+  letter-spacing: 0.02em;
+}
+
+.top-banner__tagline {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  /* A few blank spaces of separation from the main title. */
+  margin-left: 1.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  /* On very narrow screens the tagline is allowed to disappear behind the
+     edge rather than wrap onto a second line. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+@media (min-width: 600px) {
+  .top-banner__title {
+    font-size: 1.2rem;
+  }
+
+  .top-banner__tagline {
+    margin-left: 1.75rem;
+    font-size: 0.9rem;
+  }
+}
+
+.top-banner__hamburger {
+  color: var(--mat-sys-on-surface, #202124);
+  background-color: transparent;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--mat-sys-surface-container, #f1f3f4);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary-container, #e8f0fe);
+    outline-offset: 2px;
+  }
+
+  .mat-icon {
+    color: var(--mat-sys-on-surface, #202124);
+  }
+}
+
+.top-banner__link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+
+  &:focus-visible {
+    outline: 3px solid #d4af37;
+    outline-offset: -3px;
+  }
+}
+
+.top-banner__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 9dvh;
+  object-fit: cover;
+  object-position: center;
+}

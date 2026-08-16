@@ -1,0 +1,10 @@
+<mat-button-toggle-group
+  class="language-switcher"
+  hideSingleSelectionIndicator
+  aria-label="Language 語言"
+  [value]="currentLang()"
+  (change)="onLangChange($event.value)"
+>
+  <mat-button-toggle value="zh" aria-label="切換至繁體中文">中</mat-button-toggle>
+  <mat-button-toggle value="en" aria-label="Switch to English">EN</mat-button-toggle>
+</mat-button-toggle-group>

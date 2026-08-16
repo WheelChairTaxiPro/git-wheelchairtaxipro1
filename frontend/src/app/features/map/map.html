@@ -1,0 +1,86 @@
+<section class="page page--map">
+  <div class="map-page">
+    <section class="map-page__search" aria-label="Search route locations">
+      <label #pickupSearchField class="map-page__search-field">
+        <span class="map-page__search-label">上車地點</span>
+        <span class="map-page__search-control map-page__search-control--gmp">
+          <span #pickupAutocompleteHost class="map-page__gmp-slot"></span>
+          <button type="button" aria-label="Clear pickup location" (click)="clearPickup()">×</button>
+        </span>
+        @if (activeRecentList() === 'pickup' && recentPickupPlaces().length > 0) {
+          <div class="map-page__recent" role="listbox" aria-label="Recent pickup addresses 最近上車地點">
+            <p class="map-page__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentPickupPlaces(); track place.address) {
+              <div class="map-page__recent-row" role="option">
+                <button type="button" class="map-page__recent-address" (click)="selectRecentPickup(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="map-page__recent-remove" aria-label="Remove recent pickup address" (click)="removeRecentPickup(place)">
+                  ×
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </label>
+
+      <label #dropoffSearchField class="map-page__search-field">
+        <span class="map-page__search-label">目的地</span>
+        <span class="map-page__search-control map-page__search-control--gmp">
+          <span #dropoffAutocompleteHost class="map-page__gmp-slot"></span>
+          <button type="button" aria-label="Clear destination" (click)="clearDropoff()">×</button>
+        </span>
+        @if (activeRecentList() === 'dropoff' && recentDropoffPlaces().length > 0) {
+          <div class="map-page__recent" role="listbox" aria-label="Recent destination addresses 最近目的地">
+            <p class="map-page__recent-title">最近使用 Recent addresses</p>
+            @for (place of recentDropoffPlaces(); track place.address) {
+              <div class="map-page__recent-row" role="option">
+                <button type="button" class="map-page__recent-address" (click)="selectRecentDropoff(place)">
+                  {{ place.address }}
+                </button>
+                <button type="button" class="map-page__recent-remove" aria-label="Remove recent destination address" (click)="removeRecentDropoff(place)">
+                  ×
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </label>
+    </section>
+
+    <div class="map-page__summary-row">
+      <section class="map-page__panel" aria-live="polite">
+        @if (error(); as e) {
+          <p class="map-page__error">
+            <span>{{ e.messageZh }}</span>
+            <span>{{ e.messageEn }}</span>
+          </p>
+        }
+
+        @if (isLoading()) {
+          <p class="map-page__loading">載入中 Loading...</p>
+        }
+
+        <p class="map-page__summary-line">
+          @if (routeSummary(); as r) {
+            距離: {{ r.distanceKm }} 千米&nbsp;&nbsp;|&nbsp;&nbsp;行程: {{ r.durationText }}
+          } @else {
+            距離: -- 千米&nbsp;&nbsp;|&nbsp;&nbsp;行程: -- 分鐘
+          }
+        </p>
+      </section>
+
+      <div class="map-page__actions">
+        <button type="button" class="map-page__secondary" (click)="showMyLocation()">
+          顯示我的位置
+        </button>
+        <button type="button" class="map-page__secondary" (click)="showRoute()">
+          顯示路線
+        </button>
+      </div>
+    </div>
+
+    <div #mapCanvas class="map-page__canvas" aria-label="Google route map"></div>
+
+  </div>
+</section>

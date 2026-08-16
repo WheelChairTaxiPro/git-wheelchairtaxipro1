@@ -1,0 +1,594 @@
+:host {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  /** Canonical control size — 「預約日期及時間」 trigger + every text/select field on this page */
+  --booking-control-height: 48px;
+  --booking-control-padding-y: 0.7rem;
+  --booking-control-padding-x: 0.85rem;
+}
+
+/* Stretch across the viewport — override global `.page { max-width: 720px; margin: 0 auto }`. */
+.page.page--booking {
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* Fee notice + trip summary — stack on narrow; one row when wide enough. */
+.booking-notices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+/* Fee reminder (subtle gold accent). */
+.booking-fee-notice {
+  margin: 0;
+  flex: 1 1 100%;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid #d4af37;
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, #d4af37 10%, var(--mat-sys-surface, #fff));
+  color: var(--mat-sys-on-surface, #202124);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.12);
+}
+
+/* Route summary — visually distinct when pickup + dropoff are set. */
+.booking-trip-highlight {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 35%, transparent);
+  border-left: 5px solid var(--mat-sys-primary, #1a73e8);
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 14%, var(--mat-sys-surface, #fff)) 0%,
+    color-mix(in srgb, #d4af37 8%, var(--mat-sys-surface, #fff)) 100%
+  );
+  box-shadow: 0 2px 10px rgba(26, 115, 232, 0.12);
+}
+
+.booking-trip-highlight__heading {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--mat-sys-primary, #1a73e8);
+  letter-spacing: 0.02em;
+}
+
+.booking-trip-highlight__heading::after {
+  content: '：';
+}
+
+.booking-trip-highlight__metrics {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.65rem 1rem;
+  min-width: 0;
+}
+
+.booking-trip-highlight__metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 1px 4px rgba(60, 64, 67, 0.1);
+  white-space: nowrap;
+}
+
+.booking-trip-highlight__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  letter-spacing: 0.03em;
+}
+
+.booking-trip-highlight__value {
+  font-size: 1.2rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--mat-sys-on-surface, #202124);
+  letter-spacing: 0.01em;
+}
+
+.booking-trip-highlight__number {
+  font-weight: 800;
+}
+
+.booking-trip-highlight__unit {
+  font-weight: 500;
+}
+
+@media (min-width: 600px) {
+  .booking-trip-highlight__value {
+    font-size: 1.28rem;
+  }
+
+  /* Trip block: heading + both metrics on one line. */
+  .booking-trip-highlight {
+    flex-wrap: nowrap;
+  }
+
+  .booking-trip-highlight__metrics {
+    flex-wrap: nowrap;
+    flex: 0 1 auto;
+  }
+
+  .booking-trip-highlight__metric {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.2rem 0.35rem;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .booking-trip-highlight__label::after {
+    content: '：';
+  }
+}
+
+/* Very wide: fee notice and trip block share one row. */
+@media (min-width: 900px) {
+  .booking-notices {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .booking-fee-notice,
+  .booking-trip-highlight {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 559px) {
+  .booking-trip-highlight {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .booking-trip-highlight__metrics {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .booking-trip-highlight__metric {
+    white-space: normal;
+  }
+}
+
+.booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.booking-form__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.booking-form__title {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.booking-form__head .booking-form__submit {
+  flex: 1 1 0%;
+  min-width: 8rem;
+  padding-inline: 1.35rem;
+}
+
+.booking-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 12px;
+  background: var(--mat-sys-surface, #fff);
+
+  legend {
+    padding: 0 0.35rem;
+    font-weight: 700;
+    color: var(--mat-sys-on-surface, #202124);
+  }
+}
+
+.booking-form__row {
+  width: 100%;
+}
+
+.booking-form__row--trio {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.booking-form__row--trio > .booking-form__field {
+  min-width: 0;
+}
+
+.booking-form__row--duo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.booking-form__row--duo > .booking-form__field {
+  min-width: 0;
+}
+
+.booking-form__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.booking-form__field--standard {
+  input,
+  select {
+    box-sizing: border-box;
+    min-height: var(--booking-control-height);
+    padding: var(--booking-control-padding-y) var(--booking-control-padding-x);
+    border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+    border-radius: 8px;
+    background: var(--mat-sys-surface, #fff);
+    color: var(--mat-sys-on-surface, #202124);
+    font: inherit;
+    line-height: 1.25;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: var(--mat-sys-primary, #1a73e8);
+    outline: 3px solid color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 18%, transparent);
+  }
+}
+
+.booking-form__field--pickup-schedule {
+  .booking-form__pickup-schedule {
+    width: 100%;
+  }
+}
+
+.booking-form__pickup-schedule-trigger {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--booking-control-height);
+  padding: var(--booking-control-padding-y) var(--booking-control-padding-x);
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 8px;
+  background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface, #202124);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    border-color: var(--mat-sys-primary, #1a73e8);
+    outline: 3px solid color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 18%, transparent);
+  }
+
+  &--invalid {
+    border-color: var(--mat-sys-error, #b3261e);
+  }
+}
+
+.booking-form__field-error {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--mat-sys-error, #b3261e);
+}
+
+.booking-route__search {
+  display: grid;
+  /* Narrow: one field per row (matches `.booking-form__row--trio` single-column layout). */
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.booking-route__search-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.booking-route__search-label {
+  padding-inline: 0.2rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.booking-route__search-control {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--booking-control-height);
+  padding: 0 0.3rem 0 0.65rem;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 999px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 2px 10px rgba(60, 64, 67, 0.18);
+
+  &::before {
+    content: '⌕';
+    margin-right: 0.35rem;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    font-size: 1.25rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  input {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--mat-sys-on-surface, #202124);
+    font: inherit;
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+
+  button {
+    flex: 0 0 auto;
+    width: calc(var(--booking-control-height) - 14px);
+    height: calc(var(--booking-control-height) - 14px);
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--mat-sys-on-surface-variant, #5f6368);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--mat-sys-surface-container, #f1f3f4);
+      outline: none;
+    }
+  }
+
+  &:focus-within {
+    border-color: var(--mat-sys-primary, #1a73e8);
+    box-shadow: 0 2px 10px rgba(60, 64, 67, 0.18),
+      0 0 0 3px color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 18%, transparent);
+  }
+}
+
+.booking-route__gmp-slot {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+/** Screen-reader-visible via `<gmp-place-autocomplete>`; mirrors only for validation + WhatsApp FormData. */
+.booking-route__form-sync {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+:host ::ng-deep .booking-route__gmp-slot gmp-place-autocomplete {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.booking-form__recent {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+  border-radius: 14px;
+  background: var(--mat-sys-surface, #fff);
+  box-shadow: 0 6px 18px rgba(60, 64, 67, 0.24);
+}
+
+.booking-form__recent-row {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--mat-sys-outline-variant, #dcdcdc);
+}
+
+.booking-form__recent-address,
+.booking-form__recent-remove {
+  border: 0;
+  background: transparent;
+  color: var(--mat-sys-on-surface, #202124);
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--mat-sys-surface-container, #f1f3f4);
+    outline: none;
+  }
+}
+
+.booking-form__recent-address {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.booking-form__recent-remove {
+  flex: 0 0 auto;
+  width: 44px;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.booking-form__recent-title {
+  margin: 0;
+  padding: 0.65rem 1rem;
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.booking-form__submit {
+  min-height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mat-sys-primary, #1a73e8);
+  color: var(--mat-sys-on-primary, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, var(--mat-sys-primary, #1a73e8) 88%, #000);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary-container, #e8f0fe);
+    outline-offset: 2px;
+  }
+}
+
+.booking-form__status {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-left: 4px solid #188038;
+  border-radius: 0 8px 8px 0;
+  background: #e6f4ea;
+  color: #0d652d;
+  line-height: 1.55;
+
+  > p {
+    margin: 0;
+  }
+
+  > p + p {
+    margin-top: 0.65rem;
+  }
+
+  a {
+    color: #1557b8;
+    font-weight: 700;
+    text-decoration: underline;
+
+    &:hover,
+    &:focus-visible {
+      color: color-mix(in srgb, #1557b8 92%, #000);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #1557b8;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+}
+
+@media (min-width: 840px) {
+  .booking-form__row--trio {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .booking-form__row--duo {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 0.85rem;
+  }
+
+  /* Wide: two pill search bars side-by-side once the trio row is also multi-column. */
+  .booking-route__search {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 720px) {
+  .booking-route__search {
+    gap: 0.75rem;
+  }
+
+  .booking-route__search-label {
+    padding-inline: 0.25rem;
+    font-size: 0.85rem;
+  }
+
+  .booking-route__search-control {
+    /* Keep same height as 「預約日期及時間」 at all breakpoints */
+    padding: 0 0.4rem 0 1rem;
+
+    &::before {
+      margin-right: 0.6rem;
+      font-size: 1.4rem;
+    }
+
+    input {
+      font-size: 1rem;
+    }
+  }
+}

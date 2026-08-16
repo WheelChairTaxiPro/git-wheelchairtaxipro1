@@ -1,0 +1,22 @@
+<header class="top-banner" role="banner" (click)="drawerService.close()">
+  <button
+    type="button"
+    mat-icon-button
+    class="top-banner__hamburger"
+    aria-label="Open navigation menu 開啟選單"
+    aria-controls="app-drawer"
+    [attr.aria-expanded]="drawerService.isOpen()"
+    (click)="drawerService.toggle(); $event.stopPropagation()"
+  >
+    <mat-icon aria-hidden="true" fontIcon="menu" />
+  </button>
+  <img
+    class="top-banner__logo"
+    src="/Logo.png"
+    alt="輪椅的士標誌 Wheelchair taxi logo"
+    width="432"
+    height="288"
+  />
+  <span class="top-banner__title">專業輪椅的士</span>
+  <span class="top-banner__tagline">| 用心關懷 | 安全可靠 | 服務至上 |</span>
+</header>

@@ -1,0 +1,24 @@
+<nav class="contact-strip" aria-label="Quick contact">
+  <a
+    class="contact-strip__btn contact-strip__btn--phone"
+    [href]="'tel:' + channels.phone"
+    (click)="onTap('phone', $event)"
+    aria-label="Call wheelchair taxi"
+    rel="nofollow"
+  >
+    <mat-icon aria-hidden="true" fontIcon="call" />
+    <span class="contact-strip__label">電話</span>
+  </a>
+
+  <a
+    class="contact-strip__btn contact-strip__btn--whatsapp"
+    [href]="whatsappUrl"
+    target="_blank"
+    rel="noopener nofollow"
+    (click)="onTap('whatsapp', $event)"
+    aria-label="Message wheelchair taxi on WhatsApp"
+  >
+    <mat-icon aria-hidden="true" fontIcon="chat" />
+    <span class="contact-strip__label">WhatsApp</span>
+  </a>
+</nav>

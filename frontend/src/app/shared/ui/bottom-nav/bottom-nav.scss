@@ -1,0 +1,114 @@
+:host {
+  display: block;
+}
+
+.bottom-nav {
+  display: grid;
+  /* Auto-fit equal columns regardless of tab count — Route + Booking split
+     50/50 today; if a third tab is added it'd split into thirds, etc. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 1px;
+
+  background: var(--mat-sys-outline-variant, #dcdcdc);
+}
+
+.bottom-nav__tab {
+  position: relative; /* For the ::before indicator bar. */
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+
+  min-height: 64px;
+  padding: 0.25rem 0.5rem;
+
+  background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface-variant, #5f6368);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: color 0.15s ease-out, background 0.15s ease-out;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Active-tab styling (WCAG 1.4.1: distinguishable by indicator bar, not just colour). */
+.bottom-nav__tab--active {
+  color: var(--mat-sys-primary, #1a73e8);
+  background: var(--mat-sys-primary-container, #e8f0fe);
+  font-weight: 600;
+
+  /* 3 px top indicator bar — the non-colour distinguisher. */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--mat-sys-primary, #1a73e8);
+  }
+
+  mat-icon {
+    /* Material Symbols has a FILL axis; toggling it turns outline icons into filled ones. */
+    font-variation-settings: 'FILL' 1;
+  }
+}
+
+.bottom-nav__tab:hover:not(.bottom-nav__tab--active) {
+  background: var(--mat-sys-surface-container, #f1f3f4);
+  color: var(--mat-sys-on-surface, #202124);
+}
+
+.bottom-nav__tab:focus-visible {
+  outline: 3px solid var(--mat-sys-primary, #1a73e8);
+  outline-offset: -3px;
+}
+
+.bottom-nav__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+
+.bottom-nav__label-zh {
+  font-size: 0.85rem;
+}
+
+.bottom-nav__label-en {
+  font-size: 0.7rem;
+  opacity: 0.85;
+  letter-spacing: 0.01em;
+}
+
+@media (min-width: 600px) {
+  .bottom-nav__tab {
+    min-height: 72px;
+    font-size: 0.9rem;
+
+    mat-icon {
+      font-size: 26px;
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  .bottom-nav__label-zh { font-size: 0.95rem; }
+  .bottom-nav__label-en { font-size: 0.75rem; }
+}
