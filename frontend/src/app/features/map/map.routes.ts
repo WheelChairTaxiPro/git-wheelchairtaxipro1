@@ -9,7 +9,7 @@ export const mapRoutes: Routes = [
       seo: {
         description:
           '查閱香港輪椅的士上車點至目的地的大約路程及行車時間，方便預約前預覽行程。',
-        canonicalPath: '/route',
+        canonicalPath: '/route/',
         ogImage: '/banner-header.png',
       },
     },

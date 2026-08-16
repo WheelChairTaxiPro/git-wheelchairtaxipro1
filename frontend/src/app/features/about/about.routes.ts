@@ -9,7 +9,7 @@ export const aboutRoutes: Routes = [
       seo: {
         description:
           '專業輪椅的士簡介：服務香港輪椅人士、長者及行動不便人士，合法的士營運，提供機場、覆診及院舍接送。',
-        canonicalPath: '/about',
+        canonicalPath: '/about/',
         ogImage: '/banner-header.png',
       },
     },

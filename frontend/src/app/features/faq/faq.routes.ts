@@ -9,7 +9,7 @@ export const faqRoutes: Routes = [
       seo: {
         description:
           '香港輪椅的士常見問題：如何預約、收費及服務費、服務範圍、機場及醫院接送、車型選擇與聯絡方法。',
-        canonicalPath: '/faq',
+        canonicalPath: '/faq/',
         ogImage: '/banner-header.png',
       },
     },
