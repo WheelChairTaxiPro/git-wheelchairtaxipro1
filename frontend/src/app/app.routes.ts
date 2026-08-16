@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  /** Landing: open the booking form first (`/booking` canonical URL stays for deep links). */
+  /** Landing: open the booking form first (`/booking/` is the prerendered canonical URL). */
   {
     path: '',
     pathMatch: 'full',
