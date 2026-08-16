@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "prestart": "node scripts/write-google-maps-config.mjs",
+    "prestart": "node scripts/write-google-maps-config.mjs && node scripts/write-ga-config.mjs",
     "start": "ng serve",
-    "prebuild": "node scripts/write-google-maps-config.mjs",
+    "prebuild": "node scripts/write-google-maps-config.mjs && node scripts/write-ga-config.mjs",
     "build": "ng build",
     "build:kkleung": "npm run prebuild && ng build --configuration=production",
     "build:jameslo": "npm run prebuild && ng build --configuration=production-jameslo",

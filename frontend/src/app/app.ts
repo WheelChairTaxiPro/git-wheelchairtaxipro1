@@ -3,6 +3,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterOutlet } from '@angular/router';
 
 import { TAXI_SERVICE_SCHEMA } from './core/config/business.schema';
+import { AnalyticsService } from './core/services/analytics.service';
 import { SeoService } from './core/services/seo.service';
 import { ContactStrip } from './features/contact-strip/contact-strip';
 import { DrawerService } from './shared/services/drawer.service';
@@ -29,10 +30,12 @@ export class App {
   protected readonly drawerService = inject(DrawerService);
   protected readonly taxiServiceSchema = TAXI_SERVICE_SCHEMA;
   private readonly seo = inject(SeoService);
+  private readonly analytics = inject(AnalyticsService);
 
   constructor() {
     this.seo.listenForRouteChanges();
     this.seo.applyFromActivatedRoute();
+    this.analytics.init();
   }
 
   /** Close when the user taps anywhere inside <main> while the drawer is open (D6c). */
