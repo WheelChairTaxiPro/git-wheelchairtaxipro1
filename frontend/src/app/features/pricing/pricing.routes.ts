@@ -9,7 +9,7 @@ export const pricingRoutes: Routes = [
       seo: {
         description:
           '香港輪椅的士收費說明：按的士咪錶收費，另加預約服務費 $100 / $120 / $150（視車型而定），收費透明無隱藏費用。',
-        canonicalPath: '/pricing',
+        canonicalPath: '/pricing/',
         ogImage: '/banner-header.png',
       },
     },

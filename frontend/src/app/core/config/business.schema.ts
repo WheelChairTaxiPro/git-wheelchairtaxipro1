@@ -14,7 +14,7 @@ export const TAXI_SERVICE_SCHEMA: Record<string, unknown> = {
   alternateName: 'WheelchairTaxiPro',
   description:
     '香港輪椅的士預約服務，為輪椅人士及長者提供無障礙接送，包括機場接送、醫院及覆診接送。合法的士咪錶收費，另加預約服務費。',
-  url: `${SITE_ORIGIN}/booking`,
+  url: `${SITE_ORIGIN}/booking/`,
   image: `${SITE_ORIGIN}/Logo.png`,
   telephone: DEFAULT_CONTACT_CHANNELS.phone,
   priceRange: '的士咪錶收費 + 預約服務費',
