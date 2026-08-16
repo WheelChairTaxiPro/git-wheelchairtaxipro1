@@ -31,19 +31,21 @@ export class JsonLd {
   }
 
   private upsertScript(data: Record<string, unknown>): void {
+    // Key scripts by schema @type so multiple JsonLd instances (e.g. sitewide
+    // TaxiService + per-page FAQPage) each reuse their own prerendered tag.
+    const key = typeof data['@type'] === 'string' ? (data['@type'] as string) : 'schema';
     if (!this.script) {
-      // Reuse prerendered script so hydration does not duplicate JSON-LD in <head>.
       this.script =
         this.document.head.querySelector<HTMLScriptElement>(
-          'script[type="application/ld+json"][data-app-json-ld="true"]',
+          `script[type="application/ld+json"][data-app-json-ld="${key}"]`,
         ) ?? null;
       if (!this.script) {
         this.script = this.document.createElement('script');
         this.script.type = 'application/ld+json';
-        this.script.setAttribute('data-app-json-ld', 'true');
         this.document.head.appendChild(this.script);
       }
     }
+    this.script.setAttribute('data-app-json-ld', key);
     this.script.textContent = JSON.stringify(data);
   }
 

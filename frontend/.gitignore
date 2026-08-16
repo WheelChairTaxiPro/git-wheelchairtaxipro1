@@ -42,3 +42,11 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Generated build-time config (from frontend/scripts/write-*-config.mjs)
+src/app/core/config/google-maps.generated.ts
+src/app/core/config/google-analytics.generated.ts
+
+# Local environment
+.env
+.env.local
